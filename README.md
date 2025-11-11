@@ -14,25 +14,60 @@ Sign in with their SBU NetID
 
 Get personalized AI-powered recommendations
 
-🧭 Folder Structure
+```
+Layout:
 project-quack/
 │
-├── backend/                # Next.js (App Router API) backend
+├── backend/                          # Server-side app (Next.js API or Express)
 │   ├── src/
-│   │   ├── app/api/        # CRUD endpoints (listings, users, chat, payments)
-│   │   ├── lib/            # Database, auth, Stripe configs
-│   │   ├── models/         # Mongoose / Prisma models
-│   │   └── tests/          # Jest unit tests
+│   │   ├── app/                      # API routes if using Next.js app router
+│   │   │   ├── api/
+│   │   │   │   ├── listings/
+│   │   │   │   ├── users/
+│   │   │   │   ├── chat/
+│   │   │   │   ├── payments/
+│   │   │   │   └── reviews/
+│   │   ├── lib/                      # Database / Auth / Stripe configs
+│   │   ├── models/                   # Mongoose or Prisma schemas
+│   │   ├── utils/                    # Helper functions
+│   │   └── tests/                    # Jest tests
+│   │
+│   ├── .env.local
 │   ├── package.json
-│   └── tsconfig.json
+│   ├── tsconfig.json
+│   ├── next.config.js
+│   └── README.md
 │
-└── frontend/               # Next.js + React + Tailwind frontend
-    ├── app/                # App Router pages (home, browse, chat, sell, etc.)
-    ├── components/         # Reusable UI components
-    ├── styles/             # Global Tailwind styles
-    ├── public/             # Static assets
+└── frontend/                         # Client-side app (React + Next.js)
+    ├── app/                          # Next.js App Router pages
+    │   ├── (routes)/
+    │   │   ├── page.tsx              # Home page
+    │   │   ├── browse/page.tsx       # Browse listings
+    │   │   ├── chat/page.tsx         # Chat UI
+    │   │   ├── sell/page.tsx         # Create/Edit listings
+    │   │   └── account/page.tsx      # Profile / Settings
+    │   ├── layout.tsx
+    │   └── globals.css
+    │
+    ├── components/                   # UI building blocks
+    │   ├── Navbar.tsx
+    │   ├── Sidebar.tsx
+    │   ├── SearchBar.tsx
+    │   ├── ItemCard.tsx
+    │   ├── ChatBox.tsx
+    │   └── FormField.tsx
+    │
+    ├── lib/                          # Hooks, API wrappers
+    ├── public/                       # Images, icons, logos
+    ├── styles/                       # Custom CSS (if needed)
+    ├── .env.local
+    ├── tailwind.config.js
+    ├── postcss.config.js
     ├── package.json
-    └── tsconfig.json
+    ├── tsconfig.json
+    ├── next.config.js
+    └── README.md
+```
 
 🧰 Prerequisites
 
