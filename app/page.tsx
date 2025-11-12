@@ -9,7 +9,7 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gradient-to-b from-white to-purple-100">
       <div className="text-center w-full max-w-md">
         <h1 className="text-6xl font-bold mb-4 text-black">Your Campus</h1>
-        <h1 className="text-6xl font-bold mb-4 text-purple-600">Marketplace</h1>
+        <h1 className="text-6xl font-bold mb-4 text-purple-600">UniMarket</h1>
 
         <div className="flex items-center justify-center">
           <p className="text-lg text-gray-700 mb-5 whitespace-nowrap">
