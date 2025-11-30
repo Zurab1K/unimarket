@@ -4,7 +4,7 @@ export default function Chat() {
     <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gradient-to-b from-blue-50 to-white">
       <div className="text-center">
         <h1 className="text-6xl font-bold mb-4 text-blue-600">
-          🦆 Project Quack
+          Onboarding Survey
         </h1>
         <p className="text-2xl text-gray-700 mb-8">
           SBU Student Marketplace
