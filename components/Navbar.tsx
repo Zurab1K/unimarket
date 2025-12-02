@@ -5,60 +5,51 @@ import { usePathname } from "next/navigation";
 import AvatarMenu from "./AvatarDropdown";
 
 export default function Navbar() {
-const pathname = usePathname();
+    const pathname = usePathname();
 
-if (pathname === "/login") {
-return null;
-}
+    if (pathname === "/login") {
+        return null;
+    }
 
-return (
-<>
-    <nav className="w-full p-4 bg-gray-100 shadow fixed flex items-center justify-between">
-    <Link href="/" className="text-2xl select-none">🦆</Link>
+    return (
+        <>
+            <nav className="w-full p-4 bg-gray-100 shadow fixed flex items-center">
 
-    {/* Center: Navigation Buttons */}
-    <div className="flex items-center space-x-3">
-        <Link
-        href="/"
-        className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
-        >
-        Home
-        </Link>
+                {/* Left (small, fixed) */}
+                <div className="flex-none">
+                    <Link href="/" className="text-2xl select-none">🦆</Link>
+                </div>
 
-        <Link
-        href="/search"
-        className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
-        >
-        Search
-        </Link>
+                {/* Center (grows to fill space) */}
+                <div className="flex-1 flex justify-center space-x-3">
+                    <Link href="/" className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
+                        Home
+                    </Link>
 
-        <Link
-        href="/messages"
-        className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
-        >
-        Messages
-        </Link>
+                    <Link href="/search" className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
+                        Search
+                    </Link>
 
-        <Link
-        href="/saved"
-        className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
-        >
-        Saved
-        </Link>
+                    <Link href="/messages" className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
+                        Messages
+                    </Link>
 
-        <Link
-        href="/cart"
-        className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
-        >
-        Cart
-        </Link>
+                    <Link href="/saved" className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
+                        Saved
+                    </Link>
 
-    </div>
+                    <Link href="/cart" className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
+                        Cart
+                    </Link>
+                </div>
 
-    {/* Right side (empty for now, keeps center aligned) */}
-    <AvatarMenu />
-    </nav>
+                {/* Right (small, fixed) */}
+                <div className="flex-none">
+                    <AvatarMenu />
+                </div>
 
-</>
-);
+            </nav>
+
+        </>
+    );
 }
