@@ -33,24 +33,21 @@ export default function Home() {
             title="MacBook Pro"
             location="NYC • 10 min ago"
             price="$1200"
+            image="/laptop.jpg"
           />
 
           <ListingCard
-            title="Mini Fridge"
-            location="Dorm A"
-            price="$80"
+            title="MacBook Pro"
+            location="NYC • 10 min ago"
+            price="$1200"
+            image="/laptop.jpg"
           />
 
           <ListingCard
-            title="LED Lights"
-            location="Dorm B"
-            price="$15"
-          />
-
-          <ListingCard
-            title="Office Chair"
-            location="Dorm C"
-            price="$40"
+            title="MacBook Pro"
+            location="NYC • 10 min ago"
+            price="$1200"
+            image="/laptop.jpg"
           />
         </div>
       </div>
