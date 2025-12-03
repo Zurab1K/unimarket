@@ -38,7 +38,7 @@ npm run dev
 
 ## Running the main app
 ```
-cd /Users/zurabik./UniMarket
+cd UniMarket   # or your cloned path
 npm install
 # if port 3000 is busy on your machine, run: PORT=3001 npm run dev
 npm run dev
