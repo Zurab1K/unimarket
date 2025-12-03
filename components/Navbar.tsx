@@ -13,7 +13,7 @@ export default function Navbar() {
 
     return (
         <>
-            <nav className="w-full p-4 bg-gray-100 shadow fixed flex items-center">
+            <nav className="w-full p-3 bg-[#B14242] shadow fixed flex items-center">
 
                 {/* Left (small, fixed) */}
                 <div className="flex-none">
@@ -22,23 +22,23 @@ export default function Navbar() {
 
                 {/* Center (grows to fill space) */}
                 <div className="flex-1 flex justify-center space-x-3">
-                    <Link href="/" className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
+                    <Link href="/" className="px-4 py-2 bg-transparent text-white hover:underline hover:bg-[#A43E3E] transition">
                         Home
                     </Link>
 
-                    <Link href="/search" className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
+                    <Link href="/search" className="px-4 py-2 bg-transparent text-white hover:underline hover:bg-[#A43E3E] transition">
                         Search
                     </Link>
 
-                    <Link href="/messages" className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
+                    <Link href="/messages" className="px-4 py-2 bg-transparent text-white hover:underline hover:bg-[#A43E3E] transition">
                         Messages
                     </Link>
 
-                    <Link href="/saved" className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
+                    <Link href="/saved" className="px-4 py-2 bg-transparent text-white hover:underline hover:bg-[#A43E3E] transition">
                         Saved
                     </Link>
 
-                    <Link href="/cart" className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
+                    <Link href="/cart" className="px-4 py-2 bg-transparent text-white hover:underline hover:bg-[#A43E3E] transition">
                         Cart
                     </Link>
                 </div>

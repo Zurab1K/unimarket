@@ -1,50 +1,54 @@
 ﻿"use client";
 
-import { useEffect, useRef } from "react";
 import ListingCard from "@/components/ListingCard";
 
 export default function Home() {
-  const listingsRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    let hasAutoScrolled = false; // resets every page load
-
-    function handleScroll() {
-      if (hasAutoScrolled) return; // prevent future auto scrolls
-
-      if (window.scrollY > 10 && listingsRef.current) {
-        hasAutoScrolled = true; // mark as used
-        window.scrollTo({
-          top: listingsRef.current.offsetTop,
-          behavior: "smooth",
-        });
-      }
-    }
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
   return (
-    <main className="flex flex-col min-h-screen bg-gradient-to-b from-white to-red-100">
-
+    <main 
+      className="
+        h-screen 
+        overflow-y-scroll 
+        snap-y snap-proximity 
+        scroll-smooth
+        scroll-pt-24
+      "
+    >
       {/* HERO SECTION */}
-      <section className="h-screen flex flex-col items-center justify-center">
-        <h1 className="text-5xl font-bold text-gray-800 select-none">
-          Welcome to Quack Marketplace
+      <section 
+        className="
+          h-screen 
+          flex flex-col items-center justify-center 
+          snap-start 
+          bg-gradient-to-br from-[#3B0D11] via-[#70161E] to-[#A71D31]
+          animate-gradientShift
+          bg-[length:200%_200%]
+        "
+      >
+        <h1 className="text-5xl font-bold text-white select-none">
+          Welcome to UniMarket
         </h1>
-        <p className="text-lg text-gray-600 mt-4 select-none">
+        <p className="text-lg text-white/90 mt-4 select-none">
           Buy, sell, and trade with your campus community.
         </p>
       </section>
 
       {/* LISTINGS SECTION */}
-      <section ref={listingsRef} className="w-full max-w-7xl mx-auto mt-16 px-8 pb-24">
-
-        <p className="text-xl font-semibold text-gray-800 text-center mb-8">
+      <section 
+        className="
+          min-h-screen 
+          w-full 
+          flex flex-col 
+          items-center
+          snap-start 
+          bg-[#F9F9F9]
+          pt-24 pb-32
+        "
+      >
+        <p className="text-3xl font-semibold text-black select-none">
           Featured Listings
         </p>
 
-        <div className="grid grid-cols-4 gap-8">
+        <div className="grid grid-cols-4 gap-10 mt-12">
 
           <ListingCard
             title="MacBook Pro"
@@ -75,9 +79,7 @@ export default function Home() {
           />
 
         </div>
-
       </section>
-
     </main>
   );
 }

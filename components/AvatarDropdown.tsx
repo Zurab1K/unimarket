@@ -29,11 +29,12 @@ export default function AvatarMenu({ imagePath = "/placeholder-avatar-picture.jp
                 <Image
                     src={imagePath}
                     alt="avatar"
-                    width={30}
-                    height={30}
+                    width={35}
+                    height={35}
                     className="
-        rounded-full cursor-pointer border shadow
-        transform transition duration-200 ease-in-out hover:scale-125"
+                        rounded-full cursor-pointer border shadow
+                        transform transition duration-200 ease-in-out
+                    "
                 />
             </button>
 
@@ -41,9 +42,9 @@ export default function AvatarMenu({ imagePath = "/placeholder-avatar-picture.jp
             {open && (
                 <div
                     className="
-        absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md border z-50
-        transform transition duration-200 ease-in-out
-        "
+                        absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md border z-50
+                        transform transition duration-200 ease-in-out
+                    "
                 >
                     <button className="w-full text-black text-left px-4 py-2 hover:bg-gray-100">
                         Profile
