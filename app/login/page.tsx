@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
   const [action, setAction] = useState("Sign Up");
 
   // Track form inputs
@@ -13,6 +15,42 @@ export default function Home() {
   const [retypedPassword, setRetypedPassword] = useState("");
   const [shakeForm, setShakeForm] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      const skipAuth =
+        typeof window !== "undefined" &&
+        (sessionStorage.getItem("skipAuth") === "true" ||
+          localStorage.getItem("skipAuth") === "true");
+
+      if (typeof window !== "undefined" && localStorage.getItem("skipAuth") === "true") {
+        localStorage.removeItem("skipAuth");
+        sessionStorage.setItem("skipAuth", "true");
+      }
+      if (skipAuth) {
+        const completed =
+          typeof window !== "undefined" &&
+          localStorage.getItem("onboardingComplete") === "true";
+        if (completed) {
+          router.replace("/home");
+        } else {
+          router.replace("/onboarding");
+        }
+        return;
+      }
+
+      const { data } = await supabase.auth.getSession();
+      const session = data.session;
+      const completed =
+        typeof window !== "undefined" &&
+        localStorage.getItem("onboardingComplete") === "true";
+      if (session && completed) {
+        router.replace("/home");
+      } else if (session) {
+        router.replace("/onboarding");
+      }
+    })();
+  }, [router]);
   
   async function handleSubmit() {
 
@@ -52,11 +90,14 @@ export default function Home() {
       }
 
       setErrorMessage("");
-      alert("Check your email to confirm your account!");
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("onboardingComplete");
+      }
+      router.push("/onboarding");
     }
 
     if (action === "Log In") {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -64,7 +105,10 @@ export default function Home() {
       if (error) {
         setErrorMessage(error.message);
       } else {
-        alert("Logged In!");
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("onboardingComplete");
+        }
+        router.push("/onboarding");
       }
     }
   }
@@ -177,13 +221,26 @@ export default function Home() {
               await handleSubmit();
             }}
 
-            className="bg-red-600 text-white px-6 py-3 rounded-lg transform transition duration-200 hover:scale-90 select-none"
+        className="bg-red-600 text-white px-6 py-3 rounded-lg transform transition duration-200 hover:scale-90 select-none"
+      >
+        {action}
+      </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                sessionStorage.setItem("skipAuth", "true");
+                localStorage.removeItem("onboardingComplete");
+              }
+              router.push("/onboarding");
+            }}
+            className="ml-3 border-2 border-red-600 text-red-600 px-6 py-3 rounded-lg transform transition duration-200 hover:scale-90 select-none"
           >
-            {action}
+            Skip
           </button>
         </div>
 
-        
+
       </div>
     </main>
   );

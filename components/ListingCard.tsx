@@ -14,7 +14,7 @@ export default function ListingCard({ title, location, price, image}: ListingCar
     return (
         <div
             className="
-                w-[320px] h-[240px] bg-white rounded-xl relative overflow-hidden shadow-lg select-none
+                w-full max-w-[320px] h-[240px] bg-white rounded-xl relative overflow-hidden shadow-lg select-none
                 transform transition-all duration-300 ease-out
                 hover:scale-[1.03]
                 group

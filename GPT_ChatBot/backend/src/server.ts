@@ -4,7 +4,6 @@ import express from 'express';
 import type { Request, Response } from 'express';
 import { z } from 'zod';
 import { OpenAI } from 'openai';
-import { es } from 'zod/locales';
 
 const PORT = Number(process.env.PORT ?? 5000);
 const MODEL = process.env.OPENAI_MODEL ?? 'gpt-4o-mini';
@@ -37,14 +36,16 @@ app.post('/api/chat', async (req: Request, res: Response) => {
   }
 
   try {
-    const response = await openai.responses.create({
+    const completion = await openai.chat.completions.create({
       model: MODEL,
-      input: parseResult.data.prompt,
+      messages: [
+        { role: 'system', content: 'You are a helpful assistant for a campus marketplace called UniMarket.' },
+        { role: 'user', content: parseResult.data.prompt },
+      ],
       temperature: 0.7,
     });
 
-    const text = extractText(response);
-
+    const text = completion.choices[0]?.message?.content ?? '';
     res.json({ response: text });
   } catch (error) {
     console.error('OpenAI error', error);
@@ -55,28 +56,3 @@ app.post('/api/chat', async (req: Request, res: Response) => {
 app.listen(PORT, () => {
   console.log(`API ready on http://localhost:${PORT}`);
 });
-
-function extractText(response: unknown): string {
-  if (
-    typeof response !== 'object' ||
-    response === null ||
-    !Array.isArray((response as { output?: unknown }).output)
-  ) {
-    return '';
-  }
-
-  const segments = (response as { output: Array<any> }).output;
-  for (const segment of segments) {
-    if (segment.type !== 'message') {
-      continue;
-    }
-    for (const item of segment.content) {
-      if (item.type === 'text') {
-        return item.text;
-      }
-    }
-  }
-
-  return '';
-}
-
