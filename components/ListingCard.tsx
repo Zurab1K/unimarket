@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 interface ListingCardProps {
   title: string;
   location: string;
@@ -6,44 +8,55 @@ interface ListingCardProps {
 }
 
 export default function ListingCard({ title, location, price, image }: ListingCardProps) {
+
+  const [liked, setLiked] = useState(false);
+
   return (
     <div
       className="
         w-[290px] h-[220px] bg-white rounded-xl relative overflow-hidden shadow-lg select-none
         transform transition-all duration-300 ease-out
-        hover:scale-[1.1]    /* card shrinks slightly */
-        group                /* allows child elements to animate */
+        hover:scale-[1.05]
+        group
       "
     >
 
-      {/* Item Image (stops before gray box) */}
-      <img
-        src={image}
-        className="
-          absolute top-0 left-0 w-full h-[145px] object-cover
-          transition-transform duration-500 ease-out
-          group-hover:scale-110
-          select-none
-        "
-      />
-
-      {/* Bottom gray box */}
+      {/* Animated container (image + gray box) */}
       <div
         className="
-          absolute bottom-0 left-0 w-full h-[75px]
-          bg-black/10
-          shadow-[inset_0_4px_8px_rgba(0,0,0,0.2)]
-          rounded-b-xl
+          absolute inset-0
+          transition-transform duration-500 ease-out
+          group-hover:scale-110
         "
-      ></div>
+      >
+        {/* Item Image */}
+        <img
+          src={image}
+          className="absolute top-0 left-0 w-full h-[145px] object-cover"
+        />
 
-      {/* Heart */}
+        {/* Bottom gray box */}
+        <div
+          className="
+            absolute bottom-0 left-0 w-full h-[75px]
+            bg-black/10
+            shadow-[inset_0_4px_8px_rgba(0,0,0,0.2)]
+            rounded-b-xl
+          "
+        ></div>
+      </div>
+
+      {/* Heart (Click to toggle) */}
       <img
-        src="/heart.png"
+        src={liked ? "/heart-filled.png" : "/heart.png"}
+        onClick={(e) => {
+          e.stopPropagation();   // prevents parent events
+          setLiked(!liked);
+        }}
         className="
-          absolute top-[15px] right-[15px] w-[32px] h-[32px]
+          absolute top-[15px] right-[15px] w-[32px] h-[32px] cursor-pointer
           transition-transform duration-300
-          group-hover:scale-110       /* heart subtly grows */
+          hover:scale-125 active:scale-90
         "
       />
 
