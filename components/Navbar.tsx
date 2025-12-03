@@ -7,9 +7,15 @@ import AvatarMenu from "./AvatarDropdown";
 
 export default function Navbar() {
     const pathname = usePathname();
-    if (pathname === "/login") return null;
-
     const [hidden, setHidden] = useState(false);
+    const links = [
+        { href: "/home", label: "Home" },
+        { href: "/search", label: "Search" },
+        { href: "/messages", label: "Messages" },
+        { href: "/chat", label: "AI Chat" },
+        { href: "/saved", label: "Saved" },
+        { href: "/cart", label: "Cart" },
+    ];
 
     useEffect(() => {
         let lastY = window.scrollY;
@@ -32,6 +38,10 @@ export default function Navbar() {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
+    const hideNavbar =
+        pathname === "/login" || pathname?.startsWith("/onboarding");
+    if (hideNavbar) return null;
+
     return (
         <nav
             className={`
@@ -49,11 +59,20 @@ export default function Navbar() {
 
             {/* Center */}
             <div className="flex-1 flex justify-center space-x-3">
-                <Link href="/" className="px-4 py-2 text-white hover:underline hover:bg-[#A43E3E] transition">Home</Link>
-                <Link href="/search" className="px-4 py-2 text-white hover:underline hover:bg-[#A43E3E] transition">Search</Link>
-                <Link href="/messages" className="px-4 py-2 text-white hover:underline hover:bg-[#A43E3E] transition">Messages</Link>
-                <Link href="/saved" className="px-4 py-2 text-white hover:underline hover:bg-[#A43E3E] transition">Saved</Link>
-                <Link href="/cart" className="px-4 py-2 text-white hover:underline hover:bg-[#A43E3E] transition">Cart</Link>
+                {links.map(({ href, label }) => {
+                    const isActive = pathname === href;
+                    return (
+                        <Link
+                            key={href}
+                            href={href}
+                            className={`px-4 py-2 text-white transition ${
+                                isActive ? "bg-[#A43E3E] rounded-lg" : "hover:underline hover:bg-[#A43E3E]"
+                            }`}
+                        >
+                            {label}
+                        </Link>
+                    );
+                })}
             </div>
 
             {/* Right */}

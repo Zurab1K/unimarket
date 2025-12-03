@@ -1,5 +1,11 @@
 /* PLACEHOLDER CODE */
+"use client";
+import { useAuthGuard } from "@/lib/useAuthGuard";
+
 export default function Listings() {
+  const ready = useAuthGuard();
+  if (!ready) return null;
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gradient-to-b from-blue-50 to-white">
       <div className="text-center">

@@ -2,8 +2,11 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function AvatarMenu({ imagePath = "/placeholder-avatar-picture.jpg" }) {
+    const router = useRouter();
     const [open, setOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -21,6 +24,21 @@ export default function AvatarMenu({ imagePath = "/placeholder-avatar-picture.jp
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, []);
+
+    async function handleLogout() {
+        try {
+            await supabase.auth.signOut();
+        } catch (err) {
+            console.error("Logout failed", err);
+        }
+        if (typeof window !== "undefined") {
+            localStorage.removeItem("onboardingComplete");
+            localStorage.removeItem("skipAuth");
+            sessionStorage.removeItem("skipAuth");
+        }
+        setOpen(false);
+        router.replace("/login");
+    }
 
     return (
         <div className="relative" ref={menuRef}>
@@ -52,7 +70,10 @@ export default function AvatarMenu({ imagePath = "/placeholder-avatar-picture.jp
                     <button className="w-full text-black text-left px-4 py-2 hover:bg-gray-100">
                         Settings
                     </button>
-                    <button className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100">
+                    <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
+                    >
                         Logout
                     </button>
                 </div>
