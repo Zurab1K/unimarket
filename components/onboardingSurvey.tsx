@@ -26,6 +26,7 @@ const INTEREST_OPTIONS = [
 const BUDGET_OPTIONS = ["<$50", "$50-$200", "$200-$500", "$500+"];
 
 export default function OnboardingSurvey() {
+  
   const router = useRouter();
   const [form, setForm] = useState<FormState>({
     fullName: "",
@@ -48,7 +49,8 @@ export default function OnboardingSurvey() {
       };
     });
   };
-
+ 
+ 
   const stepContent = useMemo(
     () => [
       (
@@ -138,19 +140,25 @@ export default function OnboardingSurvey() {
               <span className="text-sm text-gray-700">Typical budget</span>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {BUDGET_OPTIONS.map((option) => (
-                  <button
-                    type="button"
-                    key={option}
-                    onClick={() => setForm((prev) => ({ ...prev, budget: option }))}
-                    className={`rounded-lg border px-3 py-2 text-sm transition ${
-                      form.budget === option
-                        ? "border-rose-500 bg-rose-50 text-rose-700"
-                        : "border-gray-300 bg-white text-gray-700 hover:border-rose-300"
-                    }`}
-                  >
-                    {option}
-                  </button>
-                ))}
+  <button
+    type="button"
+    key={option}
+    onClick={() =>
+      setForm((prev) => ({
+        ...prev,
+        budget: prev.budget === option ? "" : option, // toggle off if already selected
+      }))
+    }
+    className={`rounded-lg border px-3 py-2 text-sm transition ${
+      form.budget === option
+        ? "border-rose-500 bg-rose-50 text-rose-700"
+        : "border-gray-300 bg-white text-gray-700 hover:border-rose-300"
+    }`}
+  >
+    {option}
+  </button>
+))}
+
               </div>
             </label>
 
@@ -172,21 +180,25 @@ export default function OnboardingSurvey() {
 
               <div className="flex gap-2">
                 {["email", "sms"].map((option) => (
-                  <button
-                    type="button"
-                    key={option}
-                    onClick={() =>
-                      setForm((prev) => ({ ...prev, contact: option as FormState["contact"] }))
-                    }
-                    className={`rounded-full border px-3 py-2 text-sm capitalize transition ${
-                      form.contact === option
-                        ? "border-rose-500 bg-rose-50 text-rose-700"
-                        : "border-gray-300 bg-white text-gray-700 hover:border-rose-300"
-                    }`}
-                  >
-                    {option}
-                  </button>
-                ))}
+  <button
+    type="button"
+    key={option}
+    onClick={() =>
+      setForm((prev) => ({
+        ...prev,
+        contact: prev.contact === option ? ("" as any) : option, // toggle off if already selected
+      }))
+    }
+    className={`rounded-full border px-3 py-2 text-sm capitalize transition ${
+      form.contact === option
+        ? "border-rose-500 bg-rose-50 text-rose-700"
+        : "border-gray-300 bg-white text-gray-700 hover:border-rose-300"
+    }`}
+  >
+    {option}
+  </button>
+))}
+
               </div>
             </div>
           </div>
