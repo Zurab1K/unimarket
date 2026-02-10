@@ -12,7 +12,6 @@ export default function Navbar() {
         { href: "/home", label: "Home" },
         { href: "/search", label: "Search" },
         { href: "/messages", label: "Messages" },
-        { href: "/chat", label: "AI Chat" },
         { href: "/saved", label: "Saved" },
         { href: "/cart", label: "Cart" },
     ];
