@@ -44,6 +44,33 @@ export default function MarketplaceHome() {
         <p className="text-lg text-white/90 mt-4 select-none">
           Buy, sell, and trade with your campus community.
         </p>
+        <div className="mt-3 flex items-center bg-white rounded-full border overflow-hidden
+                focus-within:ring-2 focus-within:ring-black/20">
+          <input
+            className="flex-1 px-4 py-2 outline-none text-black"
+            type="text"
+            placeholder="Quick Search"
+          />
+          <button
+            aria-label="Search"
+            className="px-4 h-full hover:bg-orange-400 transition active:scale-95 bg-orange-300"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-6 h-6 text-black"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-4.35-4.35m1.6-4.15a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </button>
+        </div>
       </section>
 
       {/* LISTINGS SECTION */}
@@ -58,17 +85,25 @@ export default function MarketplaceHome() {
           pt-24 pb-32
         "
       >
-        <div className="relative w-full max-w-[1000px] flex items-center justify-center">
+        <div className="
+    relative w-full max-w-[1000px]
+    flex items-center justify-center
+    px-4
+">
           <p className="text-3xl font-semibold text-black select-none text-center">
             Featured Listings
           </p>
 
-          <div className="absolute right-0">
+          <div className="hidden sm:block absolute right-0">
+            <SortDropdown sortBy={sortBy} setSortBy={setSortBy} />
+          </div>
+
+          <div className="sm:hidden mt-4">
             <SortDropdown sortBy={sortBy} setSortBy={setSortBy} />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 md:gap-10 mt-12 w-full px-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 md:gap-10 mt-12 w-full px-4 justify-items-center">
           {sortedListings.map((item, index) => (
             <ListingCard
               key={index}
