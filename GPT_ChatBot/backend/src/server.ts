@@ -5,7 +5,7 @@ import type { Request, Response } from "express";
 import { z } from "zod";
 import { OpenAI } from "openai";
 
-const PORT = Number(process.env.PORT ?? 5000);
+const PORT = Number(process.env.PORT ?? 5050);
 const MODEL = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
 
 const openai = new OpenAI({

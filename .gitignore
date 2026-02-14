@@ -15,6 +15,7 @@
 
 # production
 /build
+GPT_ChatBot/backend/dist/
 
 # misc
 .DS_Store
