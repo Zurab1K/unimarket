@@ -14,14 +14,22 @@
 - An OpenAI API key for the chatbot backend
 
 ## Environment variables
-Main app (`.env` in repo root, already present):
+Main app:
+1. Copy `.env.example` to `.env`
+2. Fill in values
+
+`.env` (repo root):
 ```
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 CHAT_API_URL=http://localhost:5050/api/chat   # points to the chatbot backend
 ```
 
-Chatbot backend (`GPT_ChatBot/backend/.env`):
+Chatbot backend:
+1. Copy `GPT_ChatBot/backend/.env.example` to `GPT_ChatBot/backend/.env`
+2. Fill in values
+
+`GPT_ChatBot/backend/.env`:
 ```
 OPENAI_API_KEY=your_real_key
 OPENAI_MODEL=gpt-4o-mini   # optional
