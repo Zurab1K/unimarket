@@ -30,9 +30,8 @@ PORT=5050                  # recommended to avoid macOS AirPlay on 5000
 
 ## Running the chatbot backend
 ```
-cd GPT_ChatBot/backend
-npm install
-npm run dev
+npm --prefix GPT_ChatBot/backend install
+npm run chat:dev
 # should log: API ready on http://localhost:5050
 ```
 
@@ -56,7 +55,6 @@ Then open the shown URL (default http://localhost:3000 or the port you set).
 - `lib/useAuthGuard.ts` – client guard for auth/onboarding.
 - `app/api/chat/route.ts` – proxy to the chatbot backend at `CHAT_API_URL`.
 - `GPT_ChatBot/backend/` – Express + OpenAI chatbot API.
-- `GPT_ChatBot/frontend/` – optional Vite demo client for the chatbot (not wired into the main app).
 
 ## Troubleshooting
 - Chat returns empty/“couldn’t generate”: ensure backend is running, `OPENAI_API_KEY` is set, and `CHAT_API_URL` matches the backend port (5050 by default). macOS AirPlay blocks port 5000—use 5050.

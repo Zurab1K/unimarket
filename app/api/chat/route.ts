@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const DEFAULT_CHAT_API = "http://localhost:5000/api/chat";
+const DEFAULT_CHAT_API = "http://localhost:5050/api/chat";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
