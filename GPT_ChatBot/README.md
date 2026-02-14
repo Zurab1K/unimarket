@@ -12,7 +12,8 @@ This folder contains the UniMarket chatbot backend service used by the main Next
 ## Setup
 1. Install dependencies:
    - `npm --prefix GPT_ChatBot/backend install`
-2. Configure environment variables in `GPT_ChatBot/backend/.env`:
+2. Copy `GPT_ChatBot/backend/.env.example` to `GPT_ChatBot/backend/.env`
+3. Configure environment variables in `GPT_ChatBot/backend/.env`:
    - `OPENAI_API_KEY` (required)
    - `OPENAI_MODEL` (optional, default `gpt-4o-mini`)
    - `PORT` (optional, default `5050`)
