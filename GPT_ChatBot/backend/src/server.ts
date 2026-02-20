@@ -3,14 +3,16 @@ import cors from "cors";
 import express from "express";
 import type { Request, Response } from "express";
 import { z } from "zod";
-import { OpenAI } from "openai";
+import { GoogleGenAI } from '@google/genai';
 
 const PORT = Number(process.env.PORT ?? 5050);
-const MODEL = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
+const MODEL = process.env.GEMINI_MODEL ?? "gemini-2.0-flash";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Load the Gemini SDK'
+const apiKey = process.env.GEMINI_API_KEY;
+if (!apiKey) throw new Error("MISSING GEMINI_API_KEY");
+
+const ai = new GoogleGenAI({ apiKey: apiKey });
 
 const promptSchema = z.object({
   prompt: z.string().min(1, "Prompt is required here"),
@@ -25,8 +27,8 @@ app.get("/health", (_req, res) => {
 });
 
 app.post("/api/chat", async (req: Request, res: Response) => {
-  if (!process.env.OPENAI_API_KEY) {
-    return res.status(500).json({ error: "Did not find an OPENAI_API_KEY" });
+  if (!process.env.GEMINI_API_KEY) {
+    return res.status(500).json({ error: "Did not find an GEMINI_API_KEY" });
   }
 
   const parseResult = promptSchema.safeParse(req.body);
@@ -36,25 +38,23 @@ app.post("/api/chat", async (req: Request, res: Response) => {
   }
 
   try {
-    const completion = await openai.chat.completions.create({
+    const userPrompt = parseResult.data.prompt;
+
+    const response = await ai.models.generateContent({
       model: MODEL,
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a helpful assistant for a campus marketplace called UniMarket.",
-        },
-        { role: "user", content: parseResult.data.prompt },
-      ],
-      temperature: 0.7,
+      contents: userPrompt,
+      config: {
+        systemInstruction:
+          "You are a helpful assistant for a campus marketplace called UniMarket",
+        temperature: 0.7,
+      },
     });
 
-    const text = completion.choices[0]?.message?.content ?? "";
-    res.json({ response: text });
+    res.json({ response: response.text ?? "" });
   } catch (error: unknown) {
-    console.error("OpenAI error", error);
+    console.error("GeminiAI error", error);
     const message =
-      error instanceof Error ? error.message : "Failed to contact OpenAI";
+      error instanceof Error ? error.message : "Failed to connect to Gemini";
     res.status(502).json({ error: message });
   }
 });
