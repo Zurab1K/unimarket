@@ -3,6 +3,7 @@ import { Sequelize } from "sequelize";
 
 // Declare type for the cached connection since TS does not know what properties in global
 declare global {
+    // eslint-disable-next-line no-var
     var sequelizeCache: Sequelize | undefined
 }
 
@@ -40,4 +41,3 @@ export async function dbConnection(){
 }
 
 export default sequelize;
-

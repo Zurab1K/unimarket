@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { getProfileByUserId, isOnboardingComplete } from "@/lib/supabaseData";
 
 type Options = {
   requireOnboarding?: boolean;
@@ -17,31 +18,6 @@ export function useAuthGuard(options: Options = { requireOnboarding: true }) {
     let active = true;
 
     async function check() {
-      const skipAuth =
-        typeof window !== "undefined" &&
-        (sessionStorage.getItem("skipAuth") === "true" ||
-          localStorage.getItem("skipAuth") === "true");
-
-      if (typeof window !== "undefined" && localStorage.getItem("skipAuth") === "true") {
-        // Clear legacy skip flag so it doesn't persist across reloads.
-        localStorage.removeItem("skipAuth");
-        sessionStorage.setItem("skipAuth", "true");
-      }
-
-      if (skipAuth) {
-        if (requireOnboarding) {
-          const completed =
-            typeof window !== "undefined" &&
-            localStorage.getItem("onboardingComplete") === "true";
-          if (!completed) {
-            router.replace("/onboarding");
-            return;
-          }
-        }
-        if (active) setReady(true);
-        return;
-      }
-
       const { data } = await supabase.auth.getSession();
       const session = data.session;
 
@@ -51,10 +27,9 @@ export function useAuthGuard(options: Options = { requireOnboarding: true }) {
       }
 
       if (requireOnboarding) {
-        const completed =
-          typeof window !== "undefined" &&
-          localStorage.getItem("onboardingComplete") === "true";
-        if (!completed) {
+        const profile = await getProfileByUserId(session.user.id);
+
+        if (!isOnboardingComplete(profile)) {
           router.replace("/onboarding");
           return;
         }

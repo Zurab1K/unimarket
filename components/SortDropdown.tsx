@@ -24,48 +24,48 @@ export default function SortDropdown({ sortBy, setSortBy }: SortDropdownProps) {
 
     return (
         <div className="relative">
-            {/* Button */}
             <button
+                type="button"
                 onClick={() => setOpen(!open)}
                 className="
-                    px-4 py-1 border rounded-lg bg-white shadow-sm text-black 
-                    w-44 flex items-center justify-between cursor-pointer whitespace-nowrap
+                    flex w-48 items-center justify-between whitespace-nowrap rounded-xl border border-[#e4d7cc] bg-[#fffaf6] px-4 py-2.5 text-sm font-medium text-[#2e1d19] shadow-sm transition
+                    hover:border-[#d3bcaf] hover:bg-white
                 "
             >
-                {options.find(o => o.value === sortBy)?.label}
+                <span>Sort: {options.find(o => o.value === sortBy)?.label}</span>
 
                 <svg
-                    className={`w-6 h-4 flex-shrink-0 transition-transform duration-300 ${open ? "rotate-180" : "rotate-0"
+                    className={`h-4 w-5 flex-shrink-0 transition-transform duration-300 ${open ? "rotate-180" : "rotate-0"
                         }`}
                     fill="none"
-                    stroke="black"
-                    strokeWidth="3"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
                     viewBox="0 0 24 24"
                 >
                     <path d="M6 9l6 6 6-6" />
                 </svg>
             </button>
 
-            {/* Dropdown Menu */}
             {open && (
                 <div
                     className="
-                        absolute right-0 mt-1 w-44 bg-white border rounded-lg shadow-lg z-20 select-none whitespace-nowrap
+                        absolute right-0 z-20 mt-2 w-48 overflow-hidden rounded-xl border border-[#e4d7cc] bg-[#fffaf6] shadow-lg select-none whitespace-nowrap
                     "
                 >
                     {options.map(opt => (
-                        <div
+                        <button
                             key={opt.value}
+                            type="button"
                             onClick={() => {
                                 setSortBy(opt.value);
                                 setOpen(false);
                             }}
                             className="
-                                px-4 py-1 hover:bg-gray-100 cursor-pointer text-black select-none
+                                block w-full px-4 py-2.5 text-left text-sm text-[#2e1d19] transition hover:bg-[#f4ece6]
                             "
                         >
                             {opt.label}
-                        </div>
+                        </button>
                     ))}
                 </div>
             )}
