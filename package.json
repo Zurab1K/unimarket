@@ -7,9 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "chat:dev": "npm --prefix GPT_ChatBot/backend run dev",
-    "chat:build": "npm --prefix GPT_ChatBot/backend run build",
-    "chat:start": "npm --prefix GPT_ChatBot/backend run start"
+    "chat:dev": "npm --prefix chatbot run dev",
+    "chat:build": "npm --prefix chatbot run build",
+    "chat:start": "npm --prefix chatbot run start"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.86.0",
