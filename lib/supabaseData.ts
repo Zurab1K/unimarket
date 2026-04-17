@@ -65,6 +65,40 @@ export type ListingInput = {
   status?: string;
 };
 
+export type Review = {
+  id: number;
+  rating: number;
+  comment: string | null;
+  reviewerId: string;
+  reviewerUsername: string;
+  reviewedUserId: string;
+  listingId: number | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Message = {
+  id: number;
+  content: string;
+  senderId: string;
+  senderUsername: string;
+  receiverId: string;
+  receiverUsername: string;
+  isRead: boolean;
+  conversationId: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Conversation = {
+  participantId: string;
+  participantUsername: string;
+  lastMessage: string | null;
+  lastMessageTime: string | null;
+  unreadCount: number;
+  isInitiatedByUser: boolean;
+};
+
 // ─── Raw DB shapes ────────────────────────────────────────────────────────────
 
 type RawProfile = {
@@ -464,3 +498,220 @@ export async function unsaveListing(listingId: number): Promise<void> {
     .eq("user_id", user.id)
     .eq("listing_id", listingId);
 }
+
+// ─── Reviews ──────────────────────────────────────────────────────────────────
+
+export async function getReviewsForUser(userId: string): Promise<{
+  data: Review[];
+  error: PostgrestError | null;
+}> {
+  const { data, error } = await supabase
+    .from("reviews")
+    .select(
+      "id, rating, comment, reviewer_id, reviewed_user_id, listing_id, created_at, updated_at"
+    )
+    .eq("reviewed_user_id", userId)
+    .order("created_at", { ascending: false })
+    .returns<any[]>();
+
+  if (error) {
+    return { data: [], error };
+  }
+
+  // Fetch reviewer usernames
+  const reviewerIds = Array.from(new Set((data ?? []).map((r) => r.reviewer_id)));
+  const { data: reviewers } = await supabase
+    .from("profiles")
+    .select("id, username")
+    .in("id", reviewerIds);
+
+  const reviewerMap = new Map(
+    (reviewers ?? []).map((p) => [p.id, p.username])
+  );
+
+  const normalized: Review[] = (data ?? []).map((r) => ({
+    id: r.id,
+    rating: r.rating,
+    comment: r.comment ?? null,
+    reviewerId: r.reviewer_id,
+    reviewerUsername: reviewerMap.get(r.reviewer_id) ?? "Unknown",
+    reviewedUserId: r.reviewed_user_id,
+    listingId: r.listing_id ?? null,
+    createdAt: r.created_at ?? "",
+    updatedAt: r.updated_at ?? "",
+  }));
+
+  return { data: normalized, error: null };
+}
+
+// ─── Messages ─────────────────────────────────────────────────────────────────
+
+export async function getConversations(userId: string): Promise<{
+  data: Conversation[];
+  error: PostgrestError | null;
+}> {
+  const { data, error } = await supabase
+    .from("messages")
+    .select("id, sender_id, receiver_id, content, is_read, created_at")
+    .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return { data: [], error };
+  }
+
+  // Group messages by conversation (between two users)
+  const conversationMap = new Map<string, any>();
+
+  (data ?? []).forEach((msg: any) => {
+    const otherUserId = msg.sender_id === userId ? msg.receiver_id : msg.sender_id;
+    const isInitiatedByUser = msg.sender_id === userId;
+
+    if (!conversationMap.has(otherUserId)) {
+      conversationMap.set(otherUserId, {
+        participantId: otherUserId,
+        lastMessage: msg.content,
+        lastMessageTime: msg.created_at,
+        unreadCount: !isInitiatedByUser && !msg.is_read ? 1 : 0,
+        isInitiatedByUser,
+      });
+    } else {
+      const existing = conversationMap.get(otherUserId);
+      if (!isInitiatedByUser && !msg.is_read) {
+        existing.unreadCount += 1;
+      }
+    }
+  });
+
+  // Fetch usernames for all participants
+  const participantIds = Array.from(conversationMap.keys());
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, username")
+    .in("id", participantIds);
+
+  const profileMap = new Map(
+    (profiles ?? []).map((p) => [p.id, p.username])
+  );
+
+  const conversations: Conversation[] = Array.from(conversationMap.entries()).map(
+    ([participantId, data]) => ({
+      ...data,
+      participantId,
+      participantUsername: profileMap.get(participantId) ?? "Unknown",
+    })
+  );
+
+  return { data: conversations, error: null };
+}
+
+export async function getMessagesWithUser(userId: string, otherUserId: string): Promise<{
+  data: Message[];
+  error: PostgrestError | null;
+}> {
+  const { data, error } = await supabase
+    .from("messages")
+    .select("id, content, sender_id, receiver_id, is_read, conversation_id, created_at, updated_at")
+    .or(
+      `and(sender_id.eq.${userId},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${userId})`
+    )
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    return { data: [], error };
+  }
+
+  // Fetch usernames
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, username")
+    .in("id", [userId, otherUserId]);
+
+  const profileMap = new Map(
+    (profiles ?? []).map((p) => [p.id, p.username])
+  );
+
+  const normalized: Message[] = (data ?? []).map((msg: any) => ({
+    id: msg.id,
+    content: msg.content,
+    senderId: msg.sender_id,
+    senderUsername: profileMap.get(msg.sender_id) ?? "Unknown",
+    receiverId: msg.receiver_id,
+    receiverUsername: profileMap.get(msg.receiver_id) ?? "Unknown",
+    isRead: msg.is_read,
+    conversationId: msg.conversation_id ?? null,
+    createdAt: msg.created_at,
+    updatedAt: msg.updated_at,
+  }));
+
+  return { data: normalized, error: null };
+}
+
+export async function sendMessage(
+  receiverId: string,
+  content: string
+): Promise<{ data: Message | null; error: PostgrestError | null }> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      data: null,
+      error: {
+        message: "Not authenticated",
+        code: "401",
+        details: "",
+        hint: "",
+      } as PostgrestError,
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("messages")
+    .insert({
+      sender_id: user.id,
+      receiver_id: receiverId,
+      content: content.trim(),
+      is_read: false,
+    })
+    .select("id, content, sender_id, receiver_id, is_read, conversation_id, created_at, updated_at")
+    .single();
+
+  if (error) {
+    return { data: null, error };
+  }
+
+  // Fetch username for current user
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", user.id)
+    .single();
+
+  return {
+    data: {
+      id: data.id,
+      content: data.content,
+      senderId: data.sender_id,
+      senderUsername: profile?.username ?? "Unknown",
+      receiverId: data.receiver_id,
+      receiverUsername: "",
+      isRead: data.is_read,
+      conversationId: data.conversation_id ?? null,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+    },
+    error: null,
+  };
+}
+
+export async function markMessagesAsRead(userId: string, otherUserId: string): Promise<void> {
+  await supabase
+    .from("messages")
+    .update({ is_read: true })
+    .eq("sender_id", otherUserId)
+    .eq("receiver_id", userId)
+    .eq("is_read", false);
+}
+

@@ -248,6 +248,7 @@ export default function ListingDetailPage() {
               <div className="flex flex-col gap-3 sm:flex-row">
                 <button
                   type="button"
+                  onClick={() => router.push(`/messages?sellerId=${listing.sellerId}`)}
                   className="flex-1 rounded-full bg-[#b15b46] py-3.5 text-sm font-semibold text-white shadow-md transition hover:bg-[#9a4c38] active:scale-[0.97]"
                 >
                   Contact seller
@@ -264,6 +265,19 @@ export default function ListingDetailPage() {
                   {liked ? "Saved ♥" : "Save listing"}
                 </button>
               </div>
+            )}
+
+            {!isOwner && (
+              <button
+                type="button"
+                onClick={() => router.push(`/users/${listing.sellerId}`)}
+                className="flex w-full items-center justify-center gap-2 rounded-full border border-[#e0cfc6] bg-[#faf5f2] py-3 text-sm font-medium text-[#6d4037] transition hover:bg-[#f1e4dc] active:scale-[0.97]"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+                View seller profile
+              </button>
             )}
 
             {/* Owner actions */}
