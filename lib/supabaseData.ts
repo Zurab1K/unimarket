@@ -432,3 +432,35 @@ export async function uploadListingImages(files: File[]): Promise<{
 
   return { data: urls, error: null };
 }
+
+export async function fetchSavedListingIds(): Promise<number[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data } = await supabase
+    .from("saved_listings")
+    .select("listing_id")
+    .eq("user_id", user.id);
+
+  return (data ?? []).map((r) => r.listing_id);
+}
+
+export async function saveListing(listingId: number): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  await supabase.from("saved_listings").insert({
+    user_id: user.id,
+    listing_id: listingId,
+  });
+}
+
+export async function unsaveListing(listingId: number): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  await supabase.from("saved_listings")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("listing_id", listingId);
+}

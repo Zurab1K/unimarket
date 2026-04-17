@@ -5,7 +5,7 @@ import SortDropdown, { SortOption } from "@/components/SortDropdown";
 import ListingFormModal from "@/components/ListingFormModal";
 import { useEffect, useState } from "react";
 import { useAuthGuard } from "@/lib/useAuthGuard";
-import { fetchListings, type ListingRecord } from "@/lib/supabaseData";
+import { fetchListings, fetchSavedListingIds, type ListingRecord } from "@/lib/supabaseData";
 import Link from "next/link";
 
 type ListingCardViewModel = {
@@ -56,6 +56,7 @@ function toViewModel(listing: ListingRecord): ListingCardViewModel {
 export default function MarketplaceHome() {
   const [sortBy, setSortBy] = useState<SortOption>("latest");
   const [listings, setListings] = useState<ListingCardViewModel[]>([]);
+  const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
   const [loadingListings, setLoadingListings] = useState(true);
   const [listingsError, setListingsError] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
@@ -66,19 +67,22 @@ export default function MarketplaceHome() {
 
     async function load() {
       setLoadingListings(true);
-      const result = await fetchListings();
+      const [result, saved] = await Promise.all([
+        fetchListings(),
+        fetchSavedListingIds(),
+      ]);
       if (!active) return;
 
       if (result.error) {
         setListingsError(result.error.message);
         setListings([]);
       } else {
-        // Only show available listings on the public feed
         setListings(
           result.data
             .filter((l) => l.status === "available")
             .map(toViewModel),
         );
+        setSavedIds(new Set(saved));
         setListingsError(null);
       }
       setLoadingListings(false);
@@ -101,9 +105,9 @@ export default function MarketplaceHome() {
   });
 
   return (
-    <main className="min-h-screen w-full snap-y snap-proximity">
+    <main className="w-full">
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
-      <section className="relative flex min-h-screen snap-start items-center justify-center overflow-hidden bg-gradient-to-br from-[#4a1716] via-[#7a2622] to-[#b44635] px-4 py-16 animate-gradientShift bg-[length:200%_200%]">
+      <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-[#4a1716] via-[#7a2622] to-[#b44635] px-4 py-24 animate-gradientShift bg-[length:200%_200%]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,244,229,0.16),_transparent_34%),radial-gradient(circle_at_bottom_left,_rgba(255,198,141,0.2),_transparent_30%)]" />
         <div className="absolute left-[-6rem] top-24 h-48 w-48 rounded-full bg-[#ffe6d2]/10 blur-3xl" />
         <div className="absolute bottom-16 right-[-5rem] h-56 w-56 rounded-full bg-[#ffd3a2]/20 blur-3xl" />
@@ -163,7 +167,7 @@ export default function MarketplaceHome() {
       </section>
 
       {/* ── Listings ──────────────────────────────────────────────────────── */}
-      <section className="min-h-screen w-full snap-start bg-[#f6f0ea] px-4 pb-28 pt-20">
+      <section className="w-full bg-[#f6f0ea] px-4 pb-28 pt-20">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-10">
           <div className="rounded-[2rem] border border-[#eadccf] bg-[#fffaf6] px-5 py-6 shadow-[0_12px_30px_rgba(75,36,28,0.05)] sm:px-8 sm:py-8">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
@@ -231,10 +235,12 @@ export default function MarketplaceHome() {
               sortedListings.map((item) => (
                 <ListingCard
                   key={item.id}
+                  id={item.id}
                   title={item.title}
                   location={item.location}
                   price={`$${item.price}`}
                   image={item.image}
+                  initialLiked={savedIds.has(item.id)}
                 />
               ))}
           </div>
