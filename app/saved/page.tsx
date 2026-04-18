@@ -8,6 +8,24 @@ import ListingCard from "@/components/ListingCard";
 import Link from "next/link";
 
 type SavedListing = ListingRecord & { savedAt: string };
+type SavedListingRow = {
+  created_at: string;
+  listings: Array<{
+    id: number;
+    seller_id: string;
+    title: string;
+    description?: string | null;
+    price: number | string;
+    category: string;
+    condition?: string | null;
+    status?: string | null;
+    images?: unknown;
+    location?: string | null;
+    is_negotiable?: boolean | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+  }>;
+};
 
 export default function SavedPage() {
   const ready = useAuthGuard();
@@ -53,10 +71,11 @@ export default function SavedPage() {
         return;
       }
 
-      const normalized: SavedListing[] = (data ?? [])
-        .filter((row: any) => row.listings)
-        .map((row: any) => {
-          const l = row.listings;
+      const rows = (data ?? []) as SavedListingRow[];
+      const normalized: SavedListing[] = rows
+        .filter((row) => row.listings.length > 0)
+        .map((row) => {
+          const l = row.listings[0];
           return {
             id: l.id,
             sellerId: l.seller_id,
@@ -108,7 +127,7 @@ export default function SavedPage() {
                 Saved Listings
               </h1>
               <p className="mt-1 text-sm text-[#745f59]">
-                Items you've hearted across UniMarket.
+                Items you&apos;ve hearted across UniMarket.
               </p>
             </div>
             {!loading && !error && (

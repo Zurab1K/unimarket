@@ -1,6 +1,6 @@
 "use client";
 
-import OnboardingSurvey from "@/components/OnboardingSurvey";
+import OnboardingSurvey from "@/components/onboardingSurvey";
 import { useAuthGuard } from "@/lib/useAuthGuard";
 
 export default function OnboardingPage() {

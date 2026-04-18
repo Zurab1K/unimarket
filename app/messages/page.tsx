@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { Suspense, useEffect, useState, useRef } from "react";
 import { useAuthGuard } from "@/lib/useAuthGuard";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
@@ -14,7 +14,18 @@ import {
   type Message,
 } from "@/lib/supabaseData";
 
-export default function MessagesPage() {
+type RealtimeMessageRow = {
+  id: number;
+  sender_id: string;
+  receiver_id: string;
+  content: string;
+  created_at: string;
+  updated_at?: string | null;
+  conversation_id?: string | null;
+  is_read: boolean;
+};
+
+function MessagesPageContent() {
   const ready = useAuthGuard();
   const searchParams = useSearchParams();
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -119,7 +130,7 @@ export default function MessagesPage() {
           filter: `receiver_id=eq.${currentUserId}`,
         },
         async (payload) => {
-          const newMsg = payload.new as any;
+          const newMsg = payload.new as RealtimeMessageRow;
           const myId = currentUserIdRef.current;
           const selectedId = selectedUserIdRef.current;
           if (!myId) return;
@@ -487,5 +498,13 @@ export default function MessagesPage() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function MessagesPage() {
+  return (
+    <Suspense fallback={null}>
+      <MessagesPageContent />
+    </Suspense>
   );
 }

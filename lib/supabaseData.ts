@@ -131,6 +131,36 @@ type RawListing = {
   updated_at?: string | null;
 };
 
+type RawReview = {
+  id: number;
+  rating: number;
+  comment?: string | null;
+  reviewer_id: string;
+  reviewed_user_id: string;
+  listing_id?: number | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+};
+
+type RawUsernameProfile = {
+  id: string;
+  username: string | null;
+};
+
+type RawConversationRow = {
+  id: number;
+  sender_id: string;
+  receiver_id: string;
+  content: string;
+  is_read: boolean;
+  created_at?: string | null;
+};
+
+type RawMessageRow = RawConversationRow & {
+  conversation_id?: string | null;
+  updated_at?: string | null;
+};
+
 const LISTING_SELECT =
   "id, seller_id, title, description, price, category, condition, status, images, location, is_negotiable, created_at, updated_at";
 
@@ -512,7 +542,7 @@ export async function getReviewsForUser(userId: string): Promise<{
     )
     .eq("reviewed_user_id", userId)
     .order("created_at", { ascending: false })
-    .returns<any[]>();
+    .returns<RawReview[]>();
 
   if (error) {
     return { data: [], error };
@@ -526,7 +556,7 @@ export async function getReviewsForUser(userId: string): Promise<{
     .in("id", reviewerIds);
 
   const reviewerMap = new Map(
-    (reviewers ?? []).map((p) => [p.id, p.username])
+    ((reviewers ?? []) as RawUsernameProfile[]).map((p) => [p.id, p.username])
   );
 
   const normalized: Review[] = (data ?? []).map((r) => ({
@@ -561,23 +591,26 @@ export async function getConversations(userId: string): Promise<{
   }
 
   // Group messages by conversation (between two users)
-  const conversationMap = new Map<string, any>();
+  const rows = (data ?? []) as RawConversationRow[];
+  const conversationMap = new Map<
+    string,
+    Omit<Conversation, "participantId" | "participantUsername">
+  >();
 
-  (data ?? []).forEach((msg: any) => {
+  rows.forEach((msg) => {
     const otherUserId = msg.sender_id === userId ? msg.receiver_id : msg.sender_id;
     const isInitiatedByUser = msg.sender_id === userId;
 
     if (!conversationMap.has(otherUserId)) {
       conversationMap.set(otherUserId, {
-        participantId: otherUserId,
         lastMessage: msg.content,
-        lastMessageTime: msg.created_at,
+        lastMessageTime: msg.created_at ?? null,
         unreadCount: !isInitiatedByUser && !msg.is_read ? 1 : 0,
         isInitiatedByUser,
       });
     } else {
       const existing = conversationMap.get(otherUserId);
-      if (!isInitiatedByUser && !msg.is_read) {
+      if (existing && !isInitiatedByUser && !msg.is_read) {
         existing.unreadCount += 1;
       }
     }
@@ -591,7 +624,7 @@ export async function getConversations(userId: string): Promise<{
     .in("id", participantIds);
 
   const profileMap = new Map(
-    (profiles ?? []).map((p) => [p.id, p.username])
+    ((profiles ?? []) as RawUsernameProfile[]).map((p) => [p.id, p.username])
   );
 
   const conversations: Conversation[] = Array.from(conversationMap.entries()).map(
@@ -628,10 +661,11 @@ export async function getMessagesWithUser(userId: string, otherUserId: string): 
     .in("id", [userId, otherUserId]);
 
   const profileMap = new Map(
-    (profiles ?? []).map((p) => [p.id, p.username])
+    ((profiles ?? []) as RawUsernameProfile[]).map((p) => [p.id, p.username])
   );
 
-  const normalized: Message[] = (data ?? []).map((msg: any) => ({
+  const rows = (data ?? []) as RawMessageRow[];
+  const normalized: Message[] = rows.map((msg) => ({
     id: msg.id,
     content: msg.content,
     senderId: msg.sender_id,
@@ -640,8 +674,8 @@ export async function getMessagesWithUser(userId: string, otherUserId: string): 
     receiverUsername: profileMap.get(msg.receiver_id) ?? "Unknown",
     isRead: msg.is_read,
     conversationId: msg.conversation_id ?? null,
-    createdAt: msg.created_at,
-    updatedAt: msg.updated_at,
+    createdAt: msg.created_at ?? "",
+    updatedAt: msg.updated_at ?? msg.created_at ?? "",
   }));
 
   return { data: normalized, error: null };
@@ -714,4 +748,3 @@ export async function markMessagesAsRead(userId: string, otherUserId: string): P
     .eq("receiver_id", userId)
     .eq("is_read", false);
 }
-

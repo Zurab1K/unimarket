@@ -67,7 +67,7 @@ export default function DeleteConfirmModal({
           <div>
             <h3 className="text-lg font-semibold text-[#2a1714]">Delete listing?</h3>
             <p className="mt-1.5 text-sm text-[#745f59]">
-              <span className="font-medium">"{title}"</span> will be permanently removed. This
+              <span className="font-medium">&quot;{title}&quot;</span> will be permanently removed. This
               cannot be undone.
             </p>
           </div>

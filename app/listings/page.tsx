@@ -73,7 +73,7 @@ export default function MyListingsPage() {
                 My Listings
               </h1>
               <p className="mt-1 text-sm text-[#745f59]">
-                Manage everything you've posted on UniMarket.
+                Manage everything you&apos;ve posted on UniMarket.
               </p>
             </div>
             <button
@@ -121,7 +121,7 @@ export default function MyListingsPage() {
             <div>
               <p className="font-semibold text-[#2a1714]">No listings yet</p>
               <p className="mt-1 text-sm text-[#745f59]">
-                Click "New listing" above to post your first item.
+                Click &quot;New listing&quot; above to post your first item.
               </p>
             </div>
           </div>
