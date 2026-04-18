@@ -16,11 +16,7 @@ type GeminiErrorPayload = {
 const PORT = Number(process.env.PORT ?? 5050);
 const MODEL = process.env.GEMINI_MODEL ?? "gemini-2.0-flash";
 const apiKey = process.env.GEMINI_API_KEY;
-if (!apiKey) {
-  throw new Error("Missing GEMINI_API_KEY");
-}
-
-const ai = new GoogleGenAI({ apiKey });
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 const systemInstruction =
   "You are a helpful assistant for a campus marketplace called UniMarket.";
 
@@ -75,12 +71,85 @@ function normalizeGeminiError(error: unknown): { status: number; message: string
   return { status: 502, message: providerMessage || "Failed to connect to Gemini" };
 }
 
+function generateFallbackResponse(prompt: string): string {
+  const normalized = prompt.trim().toLowerCase();
+
+  if (
+    normalized.includes("price") ||
+    normalized.includes("pricing") ||
+    normalized.includes("how much") ||
+    normalized.includes("worth")
+  ) {
+    return [
+      "UniMarket fallback assistant:",
+      "1. Check 3 to 5 similar campus listings and start about 10 to 15% above your minimum acceptable price.",
+      "2. Price fast-moving basics like mini fridges, desks, and textbooks more aggressively if you need a quick sale.",
+      "3. Mention condition, age, accessories, and meetup location in the listing so buyers trust the price.",
+      "4. If you want, send me the item name, condition, and original price and I can suggest a tighter price range.",
+    ].join("\n");
+  }
+
+  if (
+    normalized.includes("message") ||
+    normalized.includes("buyer") ||
+    normalized.includes("seller") ||
+    normalized.includes("reply")
+  ) {
+    return [
+      "UniMarket fallback assistant:",
+      "Try this message:",
+      '"Hi! I’m interested in your item. Is it still available, and would you be free to meet on campus this week? If yes, what time works best for you?"',
+      "If you are the seller, keep replies short: confirm availability, suggest 2 meetup windows, and restate the price.",
+    ].join("\n");
+  }
+
+  if (
+    normalized.includes("safe") ||
+    normalized.includes("scam") ||
+    normalized.includes("meet") ||
+    normalized.includes("pickup")
+  ) {
+    return [
+      "UniMarket fallback assistant:",
+      "Meet in a public campus location, avoid advance payments, inspect the item before sending money, and keep all deal details in writing.",
+      "If the buyer or seller rushes you, asks to move off-platform immediately, or refuses a normal meetup, walk away.",
+    ].join("\n");
+  }
+
+  if (
+    normalized.includes("listing") ||
+    normalized.includes("title") ||
+    normalized.includes("description") ||
+    normalized.includes("post")
+  ) {
+    return [
+      "UniMarket fallback assistant:",
+      "A strong listing should include:",
+      "- a specific title with brand, item type, and condition",
+      "- 3 to 5 clear photos in good lighting",
+      "- the actual condition and any flaws",
+      "- pickup area and whether the price is negotiable",
+      "If you paste your draft listing text, I can rewrite it for clarity.",
+    ].join("\n");
+  }
+
+  return [
+    "UniMarket fallback assistant:",
+    "I can still help with pricing, listing copy, negotiation, buyer messages, and meetup safety even while the AI provider is unavailable.",
+    "Tell me what item or situation you are dealing with, and I’ll give you a practical draft or checklist.",
+  ].join("\n");
+}
+
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 app.get("/health", (_req: Request, res: Response) => {
-  res.json({ status: "ok" });
+  res.json({
+    status: "ok",
+    mode: ai ? "gemini" : "fallback",
+    providerConfigured: Boolean(apiKey),
+  });
 });
 
 app.post("/api/chat", async (req: Request, res: Response): Promise<void> => {
@@ -94,6 +163,15 @@ app.post("/api/chat", async (req: Request, res: Response): Promise<void> => {
   try {
     const userPrompt = parseResult.data.prompt;
 
+    if (!ai) {
+      res.json({
+        response: generateFallbackResponse(userPrompt),
+        mode: "fallback",
+        warning: "Gemini API key is not configured. Returning a local fallback response.",
+      });
+      return;
+    }
+
     const response = await ai.models.generateContent({
       model: MODEL,
       contents: userPrompt,
@@ -103,11 +181,15 @@ app.post("/api/chat", async (req: Request, res: Response): Promise<void> => {
       },
     });
 
-    res.json({ response: response.text ?? "" });
+    res.json({ response: response.text ?? "", mode: "gemini" });
   } catch (error: unknown) {
     console.error("Gemini error", error);
     const normalized = normalizeGeminiError(error);
-    res.status(normalized.status).json({ error: normalized.message });
+    res.json({
+      response: generateFallbackResponse(parseResult.data.prompt),
+      mode: "fallback",
+      warning: normalized.message,
+    });
   }
 });
 

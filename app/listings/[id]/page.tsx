@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
+import FallbackImage from "@/components/FallbackImage";
+import { DEFAULT_IMAGE_SRC } from "@/lib/imageSources";
 import { useAuthGuard } from "@/lib/useAuthGuard";
 import {
   fetchListing,
@@ -108,7 +109,7 @@ export default function ListingDetailPage() {
 
   const images = listing.images.length > 0
     ? listing.images
-    : ["/placeholder-avatar-picture.jpg"];
+    : [DEFAULT_IMAGE_SRC];
 
   const isOwner = currentUserId === listing.sellerId;
   const statusStyle = STATUS_STYLES[listing.status] ?? STATUS_STYLES["available"];
@@ -135,7 +136,7 @@ export default function ListingDetailPage() {
           <div className="flex flex-col gap-3 lg:sticky lg:top-8 lg:w-[52%]">
             {/* Main image */}
             <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[1.75rem] border border-[#eadccf] bg-[#fffaf6] shadow-[0_16px_40px_rgba(63,27,21,0.1)]">
-              <Image
+              <FallbackImage
                 src={images[activeImage]}
                 alt={listing.title}
                 fill
@@ -163,7 +164,7 @@ export default function ListingDetailPage() {
                         : "border-[#e0cfc6] hover:border-[#c49080]"
                     }`}
                   >
-                    <Image src={src} alt={`Photo ${i + 1}`} fill className="object-cover" sizes="64px" />
+                    <FallbackImage src={src} alt={`Photo ${i + 1}`} fill className="object-cover" sizes="64px" />
                   </button>
                 ))}
               </div>
@@ -188,7 +189,7 @@ export default function ListingDetailPage() {
                     : "border-[#e0cfc6] bg-[#faf5f2] hover:border-[#b15b46] hover:bg-[#fdf0eb]"
                 }`}
               >
-                <Image
+                <FallbackImage
                   src={liked ? "/heartfilled.png" : "/heart.png"}
                   alt=""
                   width={20}

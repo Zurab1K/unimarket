@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import FallbackImage from "@/components/FallbackImage";
 import { saveListing, unsaveListing } from "@/lib/supabaseData";
 
 interface ListingCardProps {
@@ -57,7 +57,7 @@ export default function ListingCard({
           select-none
         "
       >
-        <Image
+        <FallbackImage
           src={image}
           alt={title}
           fill
@@ -86,7 +86,7 @@ export default function ListingCard({
           hover:scale-[1.05] hover:bg-[#4d211b]/30
         "
       >
-        <Image
+        <FallbackImage
           src={liked ? "/heartfilled.png" : "/heart.png"}
           alt=""
           fill

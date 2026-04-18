@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import FallbackImage from "@/components/FallbackImage";
+import { DEFAULT_IMAGE_SRC } from "@/lib/imageSources";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -40,7 +41,7 @@ function buildAccountSummary(email: string | null, username: unknown): AccountSu
 }
 
 export default function AvatarMenu({
-  imagePath = "/placeholder-avatar-picture.jpg",
+  imagePath = DEFAULT_IMAGE_SRC,
 }: AvatarMenuProps) {
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -93,7 +94,7 @@ export default function AvatarMenu({
         className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/10 px-2 py-1.5 text-left text-white transition hover:bg-white/15"
         aria-label="Open account menu"
       >
-        <Image
+        <FallbackImage
           src={imagePath}
           alt="Profile avatar"
           width={36}

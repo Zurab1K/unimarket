@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { DEFAULT_IMAGE_SRC, normalizeImageList } from "@/lib/imageSources";
 import { useAuthGuard } from "@/lib/useAuthGuard";
 import { supabase } from "@/lib/supabaseClient";
 import { type ListingRecord } from "@/lib/supabaseData";
@@ -85,9 +86,7 @@ export default function SavedPage() {
             category: l.category,
             condition: l.condition ?? null,
             status: l.status ?? "available",
-            images: Array.isArray(l.images)
-              ? l.images.filter((i: unknown) => typeof i === "string")
-              : [],
+            images: normalizeImageList(l.images),
             location: l.location ?? null,
             isNegotiable: l.is_negotiable ?? false,
             createdAt: l.created_at ?? "",
@@ -196,7 +195,7 @@ export default function SavedPage() {
                   [item.location, item.category].filter(Boolean).join(" • ")
                 }
                 price={`$${item.price}`}
-                image={item.images[0] ?? "/placeholder-avatar-picture.jpg"}
+                image={item.images[0] ?? DEFAULT_IMAGE_SRC}
                 initialLiked={true}
                 onUnlike={() => handleUnsave(item.id)}
               />

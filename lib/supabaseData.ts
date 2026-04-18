@@ -1,6 +1,7 @@
 "use client";
 
 import type { PostgrestError } from "@supabase/supabase-js";
+import { normalizeImageList } from "@/lib/imageSources";
 import { supabase } from "@/lib/supabaseClient";
 
 export const PROFILE_TABLE = "profiles";
@@ -185,13 +186,7 @@ function normalizeProfile(profile: RawProfile): UserProfile {
 }
 
 function normalizeImages(images: unknown): string[] {
-  if (Array.isArray(images)) {
-    return images.filter(
-      (img): img is string => typeof img === "string" && img.length > 0,
-    );
-  }
-  if (typeof images === "string" && images.length > 0) return [images];
-  return [];
+  return normalizeImageList(images);
 }
 
 function normalizeListing(listing: RawListing): ListingRecord {
