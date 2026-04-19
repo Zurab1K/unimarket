@@ -47,10 +47,10 @@ export default function DeleteConfirmModal({
       <div className="w-full max-w-sm overflow-hidden rounded-[1.75rem] border border-[#eadccf] bg-[#fffaf6] shadow-[0_24px_64px_rgba(63,27,21,0.18)]">
         {/* Icon */}
         <div className="flex flex-col items-center gap-4 px-8 pt-8 pb-6 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-rose-100">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[rgba(var(--brand-accent),0.18)]">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-7 w-7 text-rose-600"
+              className="h-7 w-7 text-[rgb(var(--brand-primary))]"
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth={1.8}
@@ -73,7 +73,7 @@ export default function DeleteConfirmModal({
           </div>
 
           {error && (
-            <p className="w-full rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm text-rose-700">
+            <p className="w-full rounded-xl border border-[rgba(var(--brand-primary),0.18)] bg-[rgba(var(--brand-accent),0.12)] px-4 py-2.5 text-sm text-[rgb(var(--brand-primary))]">
               {error}
             </p>
           )}
@@ -93,7 +93,7 @@ export default function DeleteConfirmModal({
             type="button"
             onClick={handleConfirm}
             disabled={deleting}
-            className="flex-1 rounded-full bg-rose-600 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-700 active:scale-[0.97] disabled:opacity-60"
+            className="flex-1 rounded-full bg-[rgb(var(--brand-accent))] py-2.5 text-sm font-semibold text-white transition hover:brightness-95 active:scale-[0.97] disabled:opacity-60"
           >
             {deleting ? "Deleting…" : "Delete"}
           </button>

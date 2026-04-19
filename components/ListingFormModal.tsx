@@ -249,7 +249,7 @@ export default function ListingFormModal({
                 className={[
                   "relative h-6 w-11 rounded-full border transition-colors duration-200",
                   form.isNegotiable
-                    ? "border-[#b15b46] bg-[#b15b46]"
+                    ? "border-[rgb(var(--brand-accent))] bg-[rgb(var(--brand-accent))]"
                     : "border-[#d0bfb8] bg-[#ede4de]",
                 ].join(" ")}
               >
@@ -281,7 +281,7 @@ export default function ListingFormModal({
           </div>
 
           {error && (
-            <p className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            <p className="rounded-xl border border-[rgba(var(--brand-primary),0.18)] bg-[rgba(var(--brand-accent),0.12)] px-4 py-3 text-sm text-[rgb(var(--brand-primary))]">
               {error}
             </p>
           )}
@@ -301,7 +301,7 @@ export default function ListingFormModal({
             type="button"
             onClick={handleSubmit}
             disabled={saving}
-            className="rounded-full bg-[#b15b46] px-6 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-[#9a4c38] active:scale-[0.97] disabled:opacity-60"
+            className="rounded-full bg-[rgb(var(--brand-accent))] px-6 py-2.5 text-sm font-semibold text-white shadow-md transition hover:brightness-95 active:scale-[0.97] disabled:opacity-60"
           >
             {saving ? "Saving…" : isEdit ? "Save changes" : "Post listing"}
           </button>
@@ -321,7 +321,7 @@ export default function ListingFormModal({
           transition: border-color 0.15s, box-shadow 0.15s;
         }
         .input::placeholder { color: #a48e87; }
-        .input:focus { border-color: #b15b46; box-shadow: 0 0 0 3px rgba(177,91,70,0.15); }
+        .input:focus { border-color: rgb(var(--brand-accent)); box-shadow: 0 0 0 3px rgba(var(--brand-accent),0.15); }
         .input:disabled { opacity: 0.6; cursor: not-allowed; }
       `}</style>
     </div>

@@ -71,7 +71,7 @@ export default function ChatBotWidget() {
       {/* Floating toggle button */}
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-rose-600 text-white shadow-lg transition hover:bg-rose-700 active:scale-95"
+        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full border border-[rgb(var(--brand-accent))] bg-[rgb(var(--brand-accent))] text-white shadow-[0_18px_40px_rgba(var(--brand-accent),0.28)] transition hover:brightness-95 active:scale-95"
         aria-label={open ? "Close chat" : "Open chat"}
       >
         {open ? (
@@ -89,10 +89,13 @@ export default function ChatBotWidget() {
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-24 right-6 z-50 flex h-[28rem] w-[22rem] flex-col rounded-2xl border border-rose-100 bg-white shadow-2xl">
+        <div className="fixed bottom-24 right-6 z-50 flex h-[28rem] w-[22rem] flex-col rounded-2xl border border-[rgba(var(--brand-primary),0.18)] bg-white shadow-[0_24px_60px_rgba(127,29,29,0.16)]">
           {/* Header */}
-          <div className="flex items-center justify-between rounded-t-2xl bg-rose-600 px-4 py-3">
-            <span className="text-sm font-semibold text-white">UniMarket AI</span>
+          <div className="flex items-center justify-between rounded-t-2xl bg-[rgb(var(--brand-accent))] px-4 py-3 text-white">
+            <div>
+              <span className="text-sm font-semibold">UniMarket AI</span>
+              <p className="text-xs text-white/75">Campus deals, pricing, and buyer help</p>
+            </div>
             <button
               onClick={() => setOpen(false)}
               className="text-white/80 transition hover:text-white"
@@ -105,7 +108,7 @@ export default function ChatBotWidget() {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-gradient-to-b from-white to-rose-50/40">
+          <div className="flex-1 space-y-3 overflow-y-auto bg-gradient-to-b from-white via-[rgba(var(--brand-accent),0.06)] to-[rgba(var(--brand-accent),0.09)] p-3">
             {messages.map((message, index) => {
               const isUser = message.role === "user";
               return (
@@ -116,8 +119,8 @@ export default function ChatBotWidget() {
                   <div
                     className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm leading-relaxed shadow-sm ${
                       isUser
-                        ? "bg-rose-600 text-white"
-                        : "bg-white text-gray-800 border border-rose-100"
+                        ? "bg-[rgb(var(--brand-accent))] text-white shadow-[0_10px_24px_rgba(var(--brand-accent),0.18)]"
+                        : "border border-[rgba(var(--brand-primary),0.18)] bg-white text-gray-800"
                     }`}
                   >
                     {message.content}
@@ -127,7 +130,7 @@ export default function ChatBotWidget() {
             })}
             {status === "sending" && (
               <div className="flex justify-start">
-                <div className="rounded-2xl border border-rose-100 bg-white px-3 py-2 text-sm text-gray-400 shadow-sm">
+                <div className="rounded-2xl border border-[rgba(var(--brand-primary),0.18)] bg-[rgba(var(--brand-accent),0.12)] px-3 py-2 text-sm text-[rgb(var(--brand-primary))] shadow-sm">
                   Typing…
                 </div>
               </div>
@@ -137,21 +140,21 @@ export default function ChatBotWidget() {
 
           {/* Error */}
           {error && (
-            <p className="px-3 py-1 text-xs text-rose-700">⚠️ {error}</p>
+            <p className="border-t border-[rgba(var(--brand-primary),0.18)] bg-[rgba(var(--brand-accent),0.12)] px-3 py-2 text-xs text-[rgb(var(--brand-primary))]">⚠️ {error}</p>
           )}
 
           {/* Input */}
-          <form onSubmit={handleSubmit} className="flex items-center gap-2 border-t border-rose-100 p-3">
+          <form onSubmit={handleSubmit} className="flex items-center gap-2 border-t border-[rgba(var(--brand-primary),0.18)] bg-white p-3">
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask anything…"
-              className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
+              className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-[rgb(var(--brand-accent))] focus:ring-2 focus:ring-[rgba(var(--brand-accent),0.22)]"
             />
             <button
               type="submit"
               disabled={status === "sending"}
-              className="rounded-lg bg-rose-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-rose-300"
+              className="rounded-lg bg-[rgb(var(--brand-accent))] px-3 py-2 text-sm font-semibold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:bg-[rgba(var(--brand-accent),0.45)]"
             >
               Send
             </button>

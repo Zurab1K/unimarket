@@ -59,10 +59,10 @@ export default function Chat() {
   if (!ready) return null;
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-rose-50 to-white px-4 py-16">
+    <main className="min-h-screen bg-gradient-to-b from-[rgba(var(--brand-accent),0.12)] to-white px-4 py-16">
       <div className="mx-auto flex max-w-5xl flex-col gap-6">
         <header className="flex flex-col gap-2">
-          <p className="text-sm font-semibold text-rose-600">AI Assistant</p>
+          <p className="text-sm font-semibold text-[rgb(var(--brand-primary))]">AI Assistant</p>
           <h1 className="text-3xl font-bold text-gray-900">Chat with UniMarket</h1>
           <p className="text-sm text-gray-600">
             Powered by your chatbot backend (set CHAT_API_URL to match). Ask anything about listings,
@@ -70,8 +70,8 @@ export default function Chat() {
           </p>
         </header>
 
-        <section className="rounded-2xl border border-rose-100 bg-white p-4 shadow-lg">
-          <div className="flex h-[55vh] flex-col gap-4 overflow-y-auto rounded-xl bg-gradient-to-b from-white to-rose-50/40 p-4">
+        <section className="rounded-2xl border border-[rgba(var(--brand-primary),0.18)] bg-white p-4 shadow-lg">
+          <div className="flex h-[55vh] flex-col gap-4 overflow-y-auto rounded-xl bg-gradient-to-b from-white to-[rgba(var(--brand-accent),0.06)] p-4">
             {messages.map((message, index) => {
               const isUser = message.role === "user";
               return (
@@ -82,8 +82,8 @@ export default function Chat() {
                   <div
                     className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
                       isUser
-                        ? "bg-rose-600 text-white"
-                        : "bg-white text-gray-800 border border-rose-100"
+                        ? "bg-[rgb(var(--brand-accent))] text-white"
+                        : "bg-white text-gray-800 border border-[rgba(var(--brand-primary),0.18)]"
                     }`}
                   >
                     {message.content}
@@ -94,7 +94,7 @@ export default function Chat() {
           </div>
 
           {error && (
-            <p className="mt-3 text-sm text-rose-700">
+            <p className="mt-3 text-sm text-[rgb(var(--brand-primary))]">
               ⚠️ {error} — ensure the chatbot backend is running and CHAT_API_URL points to it.
             </p>
           )}
@@ -105,12 +105,12 @@ export default function Chat() {
               onChange={(event) => setInput(event.target.value)}
               rows={3}
               placeholder="Ask for pricing advice, safe meetups, or write a friendly buyer message..."
-              className="w-full flex-1 rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
+              className="w-full flex-1 rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-[rgb(var(--brand-accent))] focus:ring-2 focus:ring-[rgba(var(--brand-accent),0.22)]"
             />
             <button
               type="submit"
               disabled={status === "sending"}
-              className="min-w-[130px] rounded-xl bg-rose-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-rose-300"
+              className="min-w-[130px] rounded-xl bg-[rgb(var(--brand-accent))] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 disabled:cursor-not-allowed disabled:bg-[rgba(var(--brand-accent),0.45)]"
             >
               {status === "sending" ? "Sending..." : "Send"}
             </button>

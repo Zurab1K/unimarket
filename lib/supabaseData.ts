@@ -313,6 +313,23 @@ export async function fetchMyListings(): Promise<{
   return { data: (data ?? []).map(normalizeListing), error };
 }
 
+export async function fetchListingsForSeller(
+  sellerId: string,
+): Promise<{
+  data: ListingRecord[];
+  error: PostgrestError | null;
+}> {
+  const { data, error } = await supabase
+    .from(LISTINGS_TABLE)
+    .select(LISTING_SELECT)
+    .eq("seller_id", sellerId)
+    .eq("status", "available")
+    .order("created_at", { ascending: false })
+    .returns<RawListing[]>();
+
+  return { data: (data ?? []).map(normalizeListing), error };
+}
+
 export async function fetchListing(id: number): Promise<{
   data: ListingRecord | null;
   error: PostgrestError | null;
@@ -504,24 +521,50 @@ export async function fetchSavedListingIds(): Promise<number[]> {
   return (data ?? []).map((r) => r.listing_id);
 }
 
-export async function saveListing(listingId: number): Promise<void> {
+export async function saveListing(
+  listingId: number,
+): Promise<PostgrestError | null> {
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
+  if (!user) {
+    return {
+      message: "Not authenticated",
+      code: "401",
+      details: "",
+      hint: "",
+    } as PostgrestError;
+  }
 
-  await supabase.from("saved_listings").insert({
+  const { error } = await supabase.from("saved_listings").insert({
     user_id: user.id,
     listing_id: listingId,
   });
+
+  if (error?.code === "23505") {
+    return null;
+  }
+
+  return error ?? null;
 }
 
-export async function unsaveListing(listingId: number): Promise<void> {
+export async function unsaveListing(
+  listingId: number,
+): Promise<PostgrestError | null> {
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
+  if (!user) {
+    return {
+      message: "Not authenticated",
+      code: "401",
+      details: "",
+      hint: "",
+    } as PostgrestError;
+  }
 
-  await supabase.from("saved_listings")
+  const { error } = await supabase.from("saved_listings")
     .delete()
     .eq("user_id", user.id)
     .eq("listing_id", listingId);
+
+  return error ?? null;
 }
 
 // ─── Reviews ──────────────────────────────────────────────────────────────────

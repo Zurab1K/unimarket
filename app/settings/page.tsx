@@ -11,7 +11,7 @@ export default function SettingsPage() {
     <main className="min-h-screen bg-[#f6f0ea] px-4 pb-28 pt-20">
       <div className="mx-auto w-full max-w-5xl space-y-8">
         <section className="rounded-[2rem] border border-[#eadccf] bg-[#fffaf6] px-6 py-8 shadow-[0_12px_30px_rgba(75,36,28,0.05)]">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#b15b46]">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[rgb(var(--brand-primary))]">
             Settings
           </p>
           <h1 className="mt-3 text-3xl font-semibold text-[#2a1714]">Account settings</h1>

@@ -1,13 +1,5 @@
 export const DEFAULT_IMAGE_SRC = "/placeholder-avatar-picture.jpg";
 
-const KNOWN_LOCAL_IMAGE_PATHS = new Set([
-  DEFAULT_IMAGE_SRC,
-  "/heart.png",
-  "/heartfilled.png",
-  "/ipad.jpg",
-  "/laptop.jpg",
-]);
-
 function isExternalImageSrc(src: string): boolean {
   return (
     src.startsWith("http://") ||
@@ -26,18 +18,29 @@ export function resolveImageSrc(
   if (isExternalImageSrc(trimmed)) return trimmed;
 
   if (trimmed.startsWith("/")) {
-    return KNOWN_LOCAL_IMAGE_PATHS.has(trimmed) ? trimmed : fallbackSrc;
+    return trimmed;
   }
 
   return fallbackSrc;
 }
 
 export function normalizeImageList(images: unknown): string[] {
-  const rawImages = Array.isArray(images)
-    ? images
-    : typeof images === "string" && images.length > 0
-      ? [images]
-      : [];
+  let rawImages: unknown[] = [];
+
+  if (Array.isArray(images)) {
+    rawImages = images;
+  } else if (typeof images === "string") {
+    const trimmed = images.trim();
+
+    if (trimmed.length > 0) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        rawImages = Array.isArray(parsed) ? parsed : [parsed];
+      } catch {
+        rawImages = [trimmed];
+      }
+    }
+  }
 
   const normalized = rawImages.flatMap((image) => {
     if (typeof image !== "string") return [];

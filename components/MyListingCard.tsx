@@ -76,7 +76,7 @@ export default function MyListingCard({
                 .join(" · ")}
             </p>
           </div>
-          <p className="text-base font-bold text-[#b15b46]">
+          <p className="text-base font-bold text-[rgb(var(--brand-primary))]">
             ${listing.price.toFixed(2)}
           </p>
         </div>
@@ -96,7 +96,7 @@ export default function MyListingCard({
           <button
             type="button"
             onClick={() => setShowDelete(true)}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-rose-200 bg-rose-50 text-rose-600 transition hover:bg-rose-100"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(var(--brand-primary),0.18)] bg-[rgba(var(--brand-accent),0.12)] text-[rgb(var(--brand-primary))] transition hover:bg-[rgba(var(--brand-accent),0.18)]"
             aria-label="Delete listing"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">

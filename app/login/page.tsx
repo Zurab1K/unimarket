@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
@@ -15,7 +16,7 @@ type NoticeTone = "error" | "info";
 function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [action, setAction] = useState<AuthAction>("Sign Up");
+  const [action, setAction] = useState<AuthAction>("Log In");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -208,102 +209,111 @@ function LoginPageContent() {
   const isSignUp = action === "Sign Up";
   const noticeClasses =
     noticeTone === "error"
-      ? "border-red-200 bg-red-50 text-red-700"
+      ? "border-[rgba(var(--brand-primary),0.18)] bg-[rgba(var(--brand-accent),0.12)] text-[rgb(var(--brand-primary))]"
       : "border-amber-200 bg-amber-50 text-amber-800";
 
   return (
-    <main className="relative flex min-h-[100svh] items-center justify-center overflow-hidden bg-gradient-to-b from-white via-red-50 to-red-100 px-4 py-4 sm:py-6">
-      <div className="absolute inset-x-0 top-0 h-56 bg-[radial-gradient(circle_at_top,_rgba(220,38,38,0.12),_transparent_60%)]" />
-      <div className="absolute left-[-6rem] top-20 h-40 w-40 rounded-full bg-red-200/40 blur-3xl" />
-      <div className="absolute bottom-8 right-[-4rem] h-44 w-44 rounded-full bg-red-300/30 blur-3xl" />
+    <main className="relative flex min-h-[100svh] items-center justify-center overflow-hidden bg-[linear-gradient(180deg,rgba(255,250,247,1),rgba(255,241,231,1))] px-4 py-3 sm:px-5 sm:py-4">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(232,140,65,0.24),_transparent_34%),radial-gradient(circle_at_bottom_left,_rgba(137,37,37,0.16),_transparent_30%),linear-gradient(135deg,rgba(137,37,37,0.08),transparent_38%,rgba(232,140,65,0.10))]" />
+      <div className="absolute inset-x-0 top-0 h-64 bg-[radial-gradient(circle_at_top,_rgba(232,140,65,0.18),_transparent_62%)]" />
+      <div className="absolute left-[-7rem] top-16 h-56 w-56 rounded-full bg-[rgba(137,37,37,0.14)] blur-3xl" />
+      <div className="absolute right-[-6rem] top-24 h-52 w-52 rounded-full bg-[rgba(232,140,65,0.16)] blur-3xl" />
+      <div className="absolute bottom-6 right-[-5rem] h-56 w-56 rounded-full bg-[rgba(232,140,65,0.14)] blur-3xl" />
+      <div className="fixed right-4 top-4 z-[60] pointer-events-auto sm:right-6 sm:top-6">
+        <div className="inline-flex rounded-xl border border-[rgba(var(--brand-primary),0.18)] bg-white/90 p-1 shadow-sm backdrop-blur">
+          {(["Log In", "Sign Up"] as AuthAction[]).map((option) => {
+            const active = action === option;
+            return (
+              <button
+                key={option}
+                type="button"
+                onClick={() => {
+                  setAction(option);
+                  setNotice("");
+                }}
+                className={`min-w-[5.5rem] rounded-lg px-3 py-1.5 text-xs font-semibold transition sm:min-w-[6rem] sm:px-4 sm:text-sm ${
+                  active
+                    ? "bg-[rgb(var(--brand-accent))] text-white shadow-sm"
+                    : "text-[rgb(var(--brand-primary))] hover:bg-white hover:text-[rgb(var(--brand-primary))]"
+                }`}
+              >
+                {option}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-      <div className="relative w-full max-w-lg rounded-[1.75rem] border border-red-100 bg-white/90 p-5 shadow-[0_22px_60px_rgba(127,29,29,0.12)] backdrop-blur sm:p-6">
+      <div className="relative w-full max-w-md rounded-[1.5rem] border border-[rgba(var(--brand-primary),0.18)] bg-white/90 p-4 shadow-[0_22px_60px_rgba(127,29,29,0.12)] backdrop-blur sm:p-5">
         <div className="text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.28em] text-red-500">
-            Campus Marketplace
-          </p>
-          <h1 className="mt-3 font-[family:var(--font-geist-sans)] text-4xl font-bold text-black sm:text-5xl">
-            Your Campus
-          </h1>
-          <h2 className="font-[family:var(--font-geist-sans)] text-4xl font-bold text-red-600 sm:text-5xl">
-            UniMarket
-          </h2>
-          <p className="mx-auto mt-3 max-w-md text-sm leading-5 text-gray-600">
-            Buy and sell dorm essentials, textbooks, electronics, and more with students who are
-            already on your campus.
-          </p>
-        </div>
-
-        <div className="mt-6 flex justify-center">
-          <div className="inline-flex rounded-xl border border-red-100 bg-red-50 p-1">
-            {(["Sign Up", "Log In"] as AuthAction[]).map((option) => {
-              const active = action === option;
-              return (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => {
-                    setAction(option);
-                    setNotice("");
-                  }}
-                  className={`min-w-28 rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                    active
-                      ? "bg-red-600 text-white shadow-sm"
-                      : "text-red-600 hover:bg-white hover:text-red-700"
-                  }`}
-                >
-                  {option}
-                </button>
-              );
-            })}
+          <div className="mx-auto flex w-fit flex-col items-center gap-2">
+            <div className="flex h-20 w-20 items-center justify-center rounded-[1.5rem] border border-[rgba(var(--brand-primary),0.18)] bg-white shadow-[0_10px_24px_rgba(127,29,29,0.10)] sm:h-[5.5rem] sm:w-[5.5rem]">
+              <Image
+                src="/unimarket-logo.png"
+                alt="UniMarket logo"
+                width={60}
+                height={62}
+                className="h-auto w-[60px] sm:w-16"
+                priority
+              />
+            </div>
+            <p className="text-xs font-semibold uppercase tracking-[0.32em] text-[rgb(var(--brand-primary))]">
+              UniMarket
+            </p>
           </div>
+          <h1 className="mt-3 text-3xl font-bold text-black sm:text-4xl">
+            Buy and sell on campus
+          </h1>
+          <p className="mx-auto mt-2 max-w-sm text-[13px] leading-5 text-gray-600 sm:text-sm">
+            Dorm essentials, textbooks, electronics, and more from students already on your campus.
+          </p>
         </div>
 
-        <div className="mt-6 grid gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
+        <div className="mt-4 grid gap-2.5 rounded-2xl border border-gray-100 bg-white p-3.5 shadow-sm sm:p-4">
           <div className="text-center">
-            <h3 className="text-xl font-semibold text-gray-900 sm:text-2xl">
+            <h3 className="text-lg font-semibold text-gray-900 sm:text-xl">
               {isSignUp ? "Create your account" : "Log in to continue"}
             </h3>
-            <p className="mt-1.5 text-sm leading-5 text-gray-500">
+            <p className="mt-1 text-[13px] leading-5 text-gray-500 sm:text-sm">
               {isSignUp
-                ? "Use your email to join the marketplace and set up your student profile."
-                : "Pick up where you left off with your listings, onboarding, and chat."}
+                ? "Join the marketplace and set up your student profile."
+                : "Return to your listings, onboarding, and chat."}
             </p>
           </div>
 
-          <div className={`grid gap-3 ${shakeForm ? "animate-shake" : ""}`}>
+          <div className={`grid gap-2.5 ${shakeForm ? "animate-shake" : ""}`}>
             {isSignUp ? (
-              <label className="grid gap-1.5">
-                <span className="text-sm font-medium text-gray-700">Username</span>
+              <label className="grid gap-1">
+                <span className="text-[13px] font-medium text-gray-700">Username</span>
                 <input
                   type="text"
                   placeholder="Choose a username"
                   value={username}
                   onChange={(event) => setUsername(event.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-black outline-none transition focus:border-red-400 focus:ring-4 focus:ring-red-100"
+                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-black outline-none transition focus:border-[rgb(var(--brand-accent))] focus:ring-4 focus:ring-[rgba(var(--brand-accent),0.22)]"
                 />
               </label>
             ) : null}
 
-            <label className="grid gap-1.5">
-              <span className="text-sm font-medium text-gray-700">Email</span>
+            <label className="grid gap-1">
+              <span className="text-[13px] font-medium text-gray-700">Email</span>
               <input
                 type="email"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-black outline-none transition focus:border-red-400 focus:ring-4 focus:ring-red-100"
+                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-black outline-none transition focus:border-[rgb(var(--brand-accent))] focus:ring-4 focus:ring-[rgba(var(--brand-accent),0.22)]"
               />
             </label>
 
-            <label className="grid gap-1.5">
-              <span className="text-sm font-medium text-gray-700">Password</span>
+            <label className="grid gap-1">
+              <span className="text-[13px] font-medium text-gray-700">Password</span>
               <input
                 type="password"
                 placeholder={isSignUp ? "Create a password" : "Enter your password"}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-black outline-none transition focus:border-red-400 focus:ring-4 focus:ring-red-100"
+                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-black outline-none transition focus:border-[rgb(var(--brand-accent))] focus:ring-4 focus:ring-[rgba(var(--brand-accent),0.22)]"
               />
             </label>
 
@@ -313,7 +323,7 @@ function LoginPageContent() {
                   type="button"
                   onClick={handleForgotPassword}
                   disabled={isSendingReset}
-                  className="text-sm font-medium text-red-600 transition hover:text-red-700 disabled:cursor-not-allowed disabled:text-red-300"
+                  className="text-sm font-medium text-[rgb(var(--brand-primary))] transition hover:text-[rgb(var(--brand-primary))] disabled:cursor-not-allowed disabled:text-[rgba(var(--brand-accent),0.5)]"
                 >
                   {isSendingReset ? "Sending..." : "Forgot password?"}
                 </button>
@@ -321,20 +331,20 @@ function LoginPageContent() {
             ) : null}
 
             {isSignUp ? (
-              <label className="grid gap-1.5">
-                <span className="text-sm font-medium text-gray-700">Retype password</span>
+              <label className="grid gap-1">
+                <span className="text-[13px] font-medium text-gray-700">Retype password</span>
                 <input
                   type="password"
                   placeholder="Retype your password"
                   value={retypedPassword}
                   onChange={(event) => setRetypedPassword(event.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-black outline-none transition focus:border-red-400 focus:ring-4 focus:ring-red-100"
+                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-black outline-none transition focus:border-[rgb(var(--brand-accent))] focus:ring-4 focus:ring-[rgba(var(--brand-accent),0.22)]"
                 />
               </label>
             ) : null}
 
             {notice ? (
-              <div className={`rounded-xl border px-4 py-3 text-sm leading-6 ${noticeClasses}`}>
+              <div className={`rounded-xl border px-4 py-2.5 text-sm leading-5 ${noticeClasses}`}>
                 {notice}
               </div>
             ) : null}
@@ -343,14 +353,14 @@ function LoginPageContent() {
               type="button"
               onClick={handlePrimaryAction}
               disabled={isSubmitting}
-              className="mt-1 rounded-xl bg-red-600 px-6 py-2.5 text-base font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300"
+              className="mt-0.5 rounded-xl bg-[rgb(var(--brand-accent))] px-6 py-2.5 text-base font-semibold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:bg-[rgba(var(--brand-accent),0.45)]"
             >
               {isSubmitting ? "Please wait..." : action}
             </button>
           </div>
         </div>
 
-        <div className="mt-4 rounded-2xl border border-red-100 bg-red-50/70 px-4 py-3 text-sm leading-5 text-gray-700">
+        <div className="mt-3 rounded-2xl border border-[rgba(var(--brand-primary),0.18)] bg-[rgba(var(--brand-accent),0.08)] px-4 py-2.5 text-[13px] leading-5 text-gray-700 sm:text-sm">
           {isSignUp ? (
             <p>After sign-up, confirm your email if prompted, then log in to finish onboarding.</p>
           ) : (

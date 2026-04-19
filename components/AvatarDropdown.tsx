@@ -91,20 +91,19 @@ export default function AvatarMenu({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/10 px-2 py-1.5 text-left text-white transition hover:bg-white/15"
+        className="flex items-center gap-2 rounded-full border border-white/35 bg-white/28 px-2 py-1 text-left text-[#45251f] shadow-[inset_0_1px_0_rgba(255,255,255,0.28)] transition hover:bg-white/40"
         aria-label="Open account menu"
       >
         <FallbackImage
           src={imagePath}
           alt="Profile avatar"
-          width={36}
-          height={36}
-          className="rounded-full border border-white/20 object-cover shadow-sm"
+          width={32}
+          height={32}
+          className="rounded-full border border-white/60 object-cover shadow-sm"
         />
 
         <div className="hidden min-w-0 sm:block">
-          <p className="truncate text-sm font-semibold leading-4 text-white">{account.label}</p>
-          <p className="truncate text-xs text-white/70">{account.detail}</p>
+          <p className="truncate text-sm font-semibold leading-4 text-[#2d1712]">{account.label}</p>
         </div>
 
         <svg
@@ -113,7 +112,7 @@ export default function AvatarMenu({
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
-          className={`h-4 w-4 text-white/80 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`h-4 w-4 text-[#6e544d] transition-transform ${open ? "rotate-180" : ""}`}
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
         </svg>

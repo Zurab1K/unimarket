@@ -62,8 +62,8 @@ export default function OnboardingSurvey() {
   const getInputClasses = (field: FieldName) =>
     `w-full rounded-lg border px-3 py-2 text-gray-900 outline-none transition ${
       fieldErrors[field]
-        ? "border-rose-500 bg-rose-50 focus:border-rose-500 focus:ring-2 focus:ring-rose-100"
-        : "border-gray-300 focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
+        ? "border-[rgb(var(--brand-accent))] bg-[rgba(var(--brand-accent),0.12)] focus:border-[rgb(var(--brand-accent))] focus:ring-2 focus:ring-[rgba(var(--brand-accent),0.22)]"
+        : "border-gray-300 focus:border-[rgb(var(--brand-accent))] focus:ring-2 focus:ring-[rgba(var(--brand-accent),0.22)]"
     }`;
 
   const clearFieldError = (field: FieldName) => {
@@ -163,7 +163,7 @@ export default function OnboardingSurvey() {
       (
         <div className="space-y-6" key="basics">
           <div>
-            <p className="text-sm font-semibold text-rose-600">Step 1</p>
+            <p className="text-sm font-semibold text-[rgb(var(--brand-primary))]">Step 1</p>
             <h3 className="text-2xl font-bold text-gray-900">Tell us about you</h3>
             <p className="text-sm text-gray-600">
               We’ll tailor recommendations to your campus and interests.
@@ -174,7 +174,7 @@ export default function OnboardingSurvey() {
             <label className="space-y-1">
               <span className="flex items-center justify-between text-sm text-gray-700">
                 <span>Full name</span>
-                {fieldErrors.fullName ? <span className="font-medium text-rose-600">{fieldErrors.fullName}</span> : null}
+                {fieldErrors.fullName ? <span className="font-medium text-[rgb(var(--brand-primary))]">{fieldErrors.fullName}</span> : null}
               </span>
               <input
                 className={getInputClasses("fullName")}
@@ -190,7 +190,7 @@ export default function OnboardingSurvey() {
             <label className="space-y-1">
               <span className="flex items-center justify-between text-sm text-gray-700">
                 <span>Campus</span>
-                {fieldErrors.campus ? <span className="font-medium text-rose-600">{fieldErrors.campus}</span> : null}
+                {fieldErrors.campus ? <span className="font-medium text-[rgb(var(--brand-primary))]">{fieldErrors.campus}</span> : null}
               </span>
               <input
                 className={getInputClasses("campus")}
@@ -206,7 +206,7 @@ export default function OnboardingSurvey() {
             <label className="space-y-1 md:col-span-2">
               <span className="flex items-center justify-between text-sm text-gray-700">
                 <span>Major / focus</span>
-                {fieldErrors.major ? <span className="font-medium text-rose-600">{fieldErrors.major}</span> : null}
+                {fieldErrors.major ? <span className="font-medium text-[rgb(var(--brand-primary))]">{fieldErrors.major}</span> : null}
               </span>
               <input
                 className={getInputClasses("major")}
@@ -225,7 +225,7 @@ export default function OnboardingSurvey() {
       (
         <div className="space-y-6" key="interests">
           <div>
-            <p className="text-sm font-semibold text-rose-600">Step 2</p>
+            <p className="text-sm font-semibold text-[rgb(var(--brand-primary))]">Step 2</p>
             <h3 className="text-2xl font-bold text-gray-900">Pick your interests</h3>
             <p className="text-sm text-gray-600">
               Choose a few categories so we can surface the best matches.
@@ -234,13 +234,13 @@ export default function OnboardingSurvey() {
 
           <div
             className={`rounded-2xl border p-4 transition ${
-              fieldErrors.interests ? "border-rose-500 bg-rose-50/70" : "border-gray-200 bg-white"
+              fieldErrors.interests ? "border-[rgb(var(--brand-accent))] bg-[rgba(var(--brand-accent),0.08)]" : "border-gray-200 bg-white"
             }`}
           >
             <div className="mb-3 flex items-center justify-between">
               <p className="text-sm font-medium text-gray-700">Choose at least one interest</p>
               {fieldErrors.interests ? (
-                <span className="text-sm font-medium text-rose-600">{fieldErrors.interests}</span>
+                <span className="text-sm font-medium text-[rgb(var(--brand-primary))]">{fieldErrors.interests}</span>
               ) : null}
             </div>
 
@@ -254,8 +254,8 @@ export default function OnboardingSurvey() {
                   onClick={() => toggleInterest(interest)}
                   className={`rounded-full border px-4 py-2 text-sm transition ${
                     active
-                      ? "border-rose-500 bg-rose-50 text-rose-700"
-                      : "border-gray-300 bg-white text-gray-700 hover:border-rose-300"
+                      ? "border-[rgb(var(--brand-accent))] bg-[rgba(var(--brand-accent),0.12)] text-[rgb(var(--brand-primary))]"
+                      : "border-gray-300 bg-white text-gray-700 hover:border-[rgba(var(--brand-accent),0.55)]"
                   }`}
                 >
                   {interest}
@@ -269,7 +269,7 @@ export default function OnboardingSurvey() {
       (
         <div className="space-y-6" key="preferences">
           <div>
-            <p className="text-sm font-semibold text-rose-600">Step 3</p>
+            <p className="text-sm font-semibold text-[rgb(var(--brand-primary))]">Step 3</p>
             <h3 className="text-2xl font-bold text-gray-900">Shopping preferences</h3>
             <p className="text-sm text-gray-600">
               Fill out every preference so we can personalize your feed.
@@ -279,13 +279,13 @@ export default function OnboardingSurvey() {
           <div className="space-y-5">
             <div
               className={`rounded-2xl border p-4 transition ${
-                fieldErrors.budget ? "border-rose-500 bg-rose-50/70" : "border-gray-200 bg-white"
+                fieldErrors.budget ? "border-[rgb(var(--brand-accent))] bg-[rgba(var(--brand-accent),0.08)]" : "border-gray-200 bg-white"
               }`}
             >
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-sm font-medium text-gray-700">Typical budget</p>
                 {fieldErrors.budget ? (
-                  <span className="text-sm font-medium text-rose-600">{fieldErrors.budget}</span>
+                  <span className="text-sm font-medium text-[rgb(var(--brand-primary))]">{fieldErrors.budget}</span>
                 ) : null}
               </div>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -302,8 +302,8 @@ export default function OnboardingSurvey() {
                     }}
                     className={`rounded-lg border px-3 py-2 text-sm transition ${
                       form.budget === option
-                        ? "border-rose-500 bg-rose-50 text-rose-700"
-                        : "border-gray-300 bg-white text-gray-700 hover:border-rose-300"
+                        ? "border-[rgb(var(--brand-accent))] bg-[rgba(var(--brand-accent),0.12)] text-[rgb(var(--brand-primary))]"
+                        : "border-gray-300 bg-white text-gray-700 hover:border-[rgba(var(--brand-accent),0.55)]"
                     }`}
                   >
                     {option}
@@ -314,81 +314,88 @@ export default function OnboardingSurvey() {
 
             <div
               className={`rounded-2xl border p-4 transition ${
-                fieldErrors.notifications ? "border-rose-500 bg-rose-50/70" : "border-gray-200 bg-white"
+                fieldErrors.notifications ? "border-[rgb(var(--brand-accent))] bg-[rgba(var(--brand-accent),0.08)]" : "border-gray-200 bg-white"
               }`}
             >
-              <div className="mb-3 flex items-center justify-between">
-                <div>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
                   <p className="text-sm font-medium text-gray-700">Send me new match notifications</p>
                   <p className="text-xs text-gray-500">Choose whether UniMarket can notify you about new matches.</p>
                 </div>
-                {fieldErrors.notifications ? (
-                  <span className="text-sm font-medium text-rose-600">{fieldErrors.notifications}</span>
-                ) : null}
+                <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                  {[
+                    { value: "yes", label: "Yes" },
+                    { value: "no", label: "No" },
+                  ].map((option) => (
+                    <button
+                      type="button"
+                      key={option.value}
+                      onClick={() => {
+                        clearFieldError("notifications");
+                        setForm((prev) => ({
+                          ...prev,
+                          notifications: option.value as FormState["notifications"],
+                        }));
+                      }}
+                      className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${
+                        form.notifications === option.value
+                          ? "border-[rgb(var(--brand-accent))] bg-[rgba(var(--brand-accent),0.12)] text-[rgb(var(--brand-primary))]"
+                          : "border-gray-300 bg-white text-gray-700 hover:border-[rgba(var(--brand-accent),0.55)]"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { value: "yes", label: "Yes" },
-                  { value: "no", label: "No" },
-                ].map((option) => (
-                  <button
-                    type="button"
-                    key={option.value}
-                    onClick={() => {
-                      clearFieldError("notifications");
-                      setForm((prev) => ({
-                        ...prev,
-                        notifications: option.value as FormState["notifications"],
-                      }));
-                    }}
-                    className={`rounded-xl border px-4 py-3 text-sm font-medium transition ${
-                      form.notifications === option.value
-                        ? "border-rose-500 bg-rose-50 text-rose-700"
-                        : "border-gray-300 bg-white text-gray-700 hover:border-rose-300"
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
+              {fieldErrors.notifications ? (
+                <span className="mt-2 block text-sm font-medium text-[rgb(var(--brand-primary))]">
+                  {fieldErrors.notifications}
+                </span>
+              ) : null}
             </div>
 
             <div
               className={`rounded-2xl border p-4 transition ${
-                fieldErrors.contact ? "border-rose-500 bg-rose-50/70" : "border-gray-200 bg-white"
+                fieldErrors.contact ? "border-[rgb(var(--brand-accent))] bg-[rgba(var(--brand-accent),0.08)]" : "border-gray-200 bg-white"
               }`}
             >
-              <div className="mb-3 flex items-center justify-between">
-                <div>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
                   <p className="text-sm font-medium text-gray-700">Preferred contact method</p>
                   <p className="text-xs text-gray-500">Tell us how you want to hear from the platform.</p>
                 </div>
-                {fieldErrors.contact ? (
-                  <span className="text-sm font-medium text-rose-600">{fieldErrors.contact}</span>
-                ) : null}
+                <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                  {[
+                    { value: "email", label: "Email" },
+                    { value: "sms", label: "SMS" },
+                  ].map((option) => (
+                    <button
+                      type="button"
+                      key={option.value}
+                      onClick={() => {
+                        clearFieldError("contact");
+                        setForm((prev) => ({
+                          ...prev,
+                          contact: option.value as FormState["contact"],
+                        }));
+                      }}
+                      className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${
+                        form.contact === option.value
+                          ? "border-[rgb(var(--brand-accent))] bg-[rgba(var(--brand-accent),0.12)] text-[rgb(var(--brand-primary))]"
+                          : "border-gray-300 bg-white text-gray-700 hover:border-[rgba(var(--brand-accent),0.55)]"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                {["email", "sms"].map((option) => (
-                  <button
-                    type="button"
-                    key={option}
-                    onClick={() => {
-                      clearFieldError("contact");
-                      setForm((prev) => ({
-                        ...prev,
-                        contact: option as FormState["contact"],
-                      }));
-                    }}
-                    className={`rounded-xl border px-4 py-3 text-sm font-medium capitalize transition ${
-                      form.contact === option
-                        ? "border-rose-500 bg-rose-50 text-rose-700"
-                        : "border-gray-300 bg-white text-gray-700 hover:border-rose-300"
-                    }`}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
+              {fieldErrors.contact ? (
+                <span className="mt-2 block text-sm font-medium text-[rgb(var(--brand-primary))]">
+                  {fieldErrors.contact}
+                </span>
+              ) : null}
             </div>
           </div>
         </div>
@@ -462,12 +469,12 @@ export default function OnboardingSurvey() {
     <div className="w-full max-w-3xl rounded-2xl border border-gray-200 bg-white shadow-xl">
       <div className="flex items-center justify-between border-b px-6 py-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-rose-600">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[rgb(var(--brand-primary))]">
             Onboarding
           </p>
           <h2 className="text-xl font-bold text-gray-900">Create your personalized feed</h2>
         </div>
-        <div className="rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700">
+        <div className="rounded-full bg-[rgba(var(--brand-accent),0.12)] px-3 py-1 text-xs font-semibold text-[rgb(var(--brand-primary))]">
           Step {currentStepIndex + 1} / {steps.length}
         </div>
       </div>
@@ -475,7 +482,7 @@ export default function OnboardingSurvey() {
       <form onSubmit={handleSubmit} className="space-y-6 px-6 py-6">
         {step}
 
-        {errorMessage ? <p className="text-sm font-medium text-rose-700">{errorMessage}</p> : null}
+        {errorMessage ? <p className="text-sm font-medium text-[rgb(var(--brand-primary))]">{errorMessage}</p> : null}
 
         <div className="flex items-center justify-between pt-4">
           {!isFirstStep ? (
@@ -493,7 +500,7 @@ export default function OnboardingSurvey() {
           <button
             type="submit"
             disabled={saving}
-            className="rounded-lg bg-rose-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-rose-300"
+            className="rounded-lg bg-[rgb(var(--brand-accent))] px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 disabled:cursor-not-allowed disabled:bg-[rgba(var(--brand-accent),0.45)]"
           >
             {saving ? "Saving..." : isLastStep ? "Finish" : "Next"}
           </button>

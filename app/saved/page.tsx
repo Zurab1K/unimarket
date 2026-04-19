@@ -9,23 +9,25 @@ import ListingCard from "@/components/ListingCard";
 import Link from "next/link";
 
 type SavedListing = ListingRecord & { savedAt: string };
+type SavedListingEmbed = {
+  id: number;
+  seller_id: string;
+  title: string;
+  description?: string | null;
+  price: number | string;
+  category: string;
+  condition?: string | null;
+  status?: string | null;
+  images?: unknown;
+  location?: string | null;
+  is_negotiable?: boolean | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+};
+
 type SavedListingRow = {
   created_at: string;
-  listings: Array<{
-    id: number;
-    seller_id: string;
-    title: string;
-    description?: string | null;
-    price: number | string;
-    category: string;
-    condition?: string | null;
-    status?: string | null;
-    images?: unknown;
-    location?: string | null;
-    is_negotiable?: boolean | null;
-    created_at?: string | null;
-    updated_at?: string | null;
-  }>;
+  listings: SavedListingEmbed | SavedListingEmbed[] | null;
 };
 
 export default function SavedPage() {
@@ -73,27 +75,35 @@ export default function SavedPage() {
       }
 
       const rows = (data ?? []) as SavedListingRow[];
-      const normalized: SavedListing[] = rows
-        .filter((row) => row.listings.length > 0)
-        .map((row) => {
-          const l = row.listings[0];
-          return {
-            id: l.id,
-            sellerId: l.seller_id,
-            title: l.title,
-            description: l.description ?? null,
-            price: typeof l.price === "number" ? l.price : Number(l.price),
-            category: l.category,
-            condition: l.condition ?? null,
-            status: l.status ?? "available",
-            images: normalizeImageList(l.images),
-            location: l.location ?? null,
-            isNegotiable: l.is_negotiable ?? false,
-            createdAt: l.created_at ?? "",
-            updatedAt: l.updated_at ?? "",
+      const normalized: SavedListing[] = rows.flatMap((row) => {
+        const listing = Array.isArray(row.listings)
+          ? row.listings[0] ?? null
+          : row.listings;
+
+        if (!listing) return [];
+
+        return [
+          {
+            id: listing.id,
+            sellerId: listing.seller_id,
+            title: listing.title,
+            description: listing.description ?? null,
+            price:
+              typeof listing.price === "number"
+                ? listing.price
+                : Number(listing.price),
+            category: listing.category,
+            condition: listing.condition ?? null,
+            status: listing.status ?? "available",
+            images: normalizeImageList(listing.images),
+            location: listing.location ?? null,
+            isNegotiable: listing.is_negotiable ?? false,
+            createdAt: listing.created_at ?? "",
+            updatedAt: listing.updated_at ?? "",
             savedAt: row.created_at,
-          };
-        });
+          },
+        ];
+      });
 
       setListings(normalized);
       setError(null);
@@ -113,13 +123,13 @@ export default function SavedPage() {
   if (!ready) return null;
 
   return (
-    <main className="min-h-screen bg-[#f6f0ea] px-4 pb-28 pt-20">
+    <main className="min-h-screen bg-[#f6f0ea] px-4 pb-28 pt-24 sm:pt-28">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-10">
         {/* Header */}
         <div className="rounded-[2rem] border border-[#eadccf] bg-[#fffaf6] px-6 py-7 shadow-[0_12px_30px_rgba(75,36,28,0.05)] sm:px-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#b15b46]">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[rgb(var(--brand-primary))]">
                 Your collection
               </p>
               <h1 className="mt-1.5 text-2xl font-semibold text-[#2a1714]">
@@ -145,7 +155,7 @@ export default function SavedPage() {
         )}
 
         {!loading && error && (
-          <p className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700">
+          <p className="rounded-2xl border border-[rgba(var(--brand-primary),0.18)] bg-[rgba(var(--brand-accent),0.12)] px-5 py-4 text-sm text-[rgb(var(--brand-primary))]">
             {error}
           </p>
         )}
@@ -155,7 +165,7 @@ export default function SavedPage() {
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#f1e4dc]">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-7 w-7 text-[#b15b46]"
+                className="h-7 w-7 text-[rgb(var(--brand-primary))]"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={1.5}
@@ -176,7 +186,7 @@ export default function SavedPage() {
             </div>
             <Link
               href="/"
-              className="rounded-full bg-[#b15b46] px-6 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-[#9a4c38] active:scale-[0.97]"
+              className="rounded-full bg-[rgb(var(--brand-accent))] px-6 py-2.5 text-sm font-semibold text-white shadow-md transition hover:brightness-95 active:scale-[0.97]"
             >
               Browse listings
             </Link>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FallbackImage from "@/components/FallbackImage";
 import { saveListing, unsaveListing } from "@/lib/supabaseData";
 
@@ -26,15 +26,27 @@ export default function ListingCard({
 }: ListingCardProps) {
   const [liked, setLiked] = useState(initialLiked);
 
+  useEffect(() => {
+    setLiked(initialLiked);
+  }, [initialLiked]);
+
   async function handleHeart(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
     const next = !liked;
     setLiked(next);
+
     if (next) {
-      await saveListing(id);
+      const error = await saveListing(id);
+      if (error) {
+        setLiked(false);
+      }
     } else {
-      await unsaveListing(id);
+      const error = await unsaveListing(id);
+      if (error) {
+        setLiked(true);
+        return;
+      }
       onUnlike?.();
     }
   }
@@ -43,7 +55,7 @@ export default function ListingCard({
     <Link
       href={`/listings/${id}`}
       className="
-        relative block h-[260px] w-full overflow-hidden rounded-[1.4rem] border border-[#eadccf] bg-[#fffaf6] shadow-[0_14px_36px_rgba(63,27,21,0.08)] select-none
+        relative block h-[320px] w-full overflow-hidden rounded-[1.4rem] border border-[#eadccf] bg-[#fffaf6] shadow-[0_14px_36px_rgba(63,27,21,0.08)] select-none
         transition-all duration-300 ease-out
         hover:-translate-y-1 hover:shadow-[0_22px_48px_rgba(63,27,21,0.12)]
         group cursor-pointer
@@ -62,13 +74,13 @@ export default function ListingCard({
           alt={title}
           fill
           draggable="false"
-          sizes="(max-width: 640px) 100vw, 320px"
-          className="absolute left-0 top-0 h-[178px] w-full object-cover select-none"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+          className="absolute left-0 top-0 h-[216px] w-full object-cover select-none"
         />
 
         <div
           className="
-            absolute bottom-0 left-0 h-[92px] w-full
+            absolute bottom-0 left-0 h-[112px] w-full
             bg-gradient-to-b from-[#f5eee8] to-[#eadfd4]
             rounded-b-[1.4rem]
           "

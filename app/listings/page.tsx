@@ -66,7 +66,7 @@ export default function MyListingsPage() {
         <div className="rounded-[2rem] border border-[#eadccf] bg-[#fffaf6] px-6 py-7 shadow-[0_12px_30px_rgba(75,36,28,0.05)]">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#b15b46]">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[rgb(var(--brand-primary))]">
                 Seller Dashboard
               </p>
               <h1 className="mt-1.5 text-2xl font-semibold text-[#2a1714]">
@@ -79,7 +79,7 @@ export default function MyListingsPage() {
             <button
               type="button"
               onClick={() => setShowCreate(true)}
-              className="flex items-center gap-2 self-start rounded-full bg-[#b15b46] px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-[#9a4c38] active:scale-[0.97] sm:self-auto"
+              className="flex items-center gap-2 self-start rounded-full bg-[rgb(var(--brand-accent))] px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:brightness-95 active:scale-[0.97] sm:self-auto"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -106,7 +106,7 @@ export default function MyListingsPage() {
         )}
 
         {!loading && error && (
-          <p className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700">
+          <p className="rounded-2xl border border-[rgba(var(--brand-primary),0.18)] bg-[rgba(var(--brand-accent),0.12)] px-5 py-4 text-sm text-[rgb(var(--brand-primary))]">
             {error}
           </p>
         )}
@@ -114,7 +114,7 @@ export default function MyListingsPage() {
         {!loading && !error && listings.length === 0 && (
           <div className="flex flex-col items-center gap-4 rounded-[2rem] border border-dashed border-[#e0cfc6] px-6 py-12 text-center">
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#f1e4dc]">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-[#b15b46]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-[rgb(var(--brand-primary))]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
