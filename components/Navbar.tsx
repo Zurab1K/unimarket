@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { fetchListings, type ListingRecord } from "@/lib/supabaseData";
+import { LISTING_CATEGORIES } from "@/lib/listingOptions";
 import AvatarMenu from "./AvatarDropdown";
 
 const links = [
@@ -15,6 +17,128 @@ const links = [
 
 const NAVBAR_LOGO_SRC = "/unimarket-logo.png?v=20260418";
 
+type SearchSuggestion = {
+  label: string;
+  query: string;
+  type: "listing" | "category";
+};
+
+function getSearchSuggestions(query: string, listings: ListingRecord[]): SearchSuggestion[] {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (!normalizedQuery) return [];
+
+  const suggestions: SearchSuggestion[] = [];
+  const seen = new Set<string>();
+
+  for (const category of LISTING_CATEGORIES) {
+    if (category.toLowerCase().includes(normalizedQuery)) {
+      const key = `category:${category.toLowerCase()}`;
+      if (!seen.has(key)) {
+        suggestions.push({ label: category, query: category, type: "category" });
+        seen.add(key);
+      }
+    }
+  }
+
+  for (const listing of listings) {
+    if (listing.status !== "available") continue;
+
+    const title = listing.title.trim();
+    if (!title || !title.toLowerCase().includes(normalizedQuery)) continue;
+
+    const key = `listing:${title.toLowerCase()}`;
+    if (seen.has(key)) continue;
+
+    suggestions.push({ label: title, query: title, type: "listing" });
+    seen.add(key);
+  }
+
+  return suggestions.slice(0, 6);
+}
+
+function SearchForm({
+  query,
+  onQueryChange,
+  onSubmit,
+  onSuggestionSelect,
+  suggestions,
+  showSuggestions,
+  onFocus,
+  onBlur,
+  roundedClassName,
+}: {
+  query: string;
+  onQueryChange: (value: string) => void;
+  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+  onSuggestionSelect: (value: string) => void;
+  suggestions: SearchSuggestion[];
+  showSuggestions: boolean;
+  onFocus: () => void;
+  onBlur: () => void;
+  roundedClassName: string;
+}) {
+  return (
+    <div className="relative w-full max-w-md">
+      <form
+        onSubmit={onSubmit}
+        className={`flex w-full items-center overflow-hidden border border-white/40 bg-white shadow-[0_10px_28px_rgba(78,34,24,0.10)] ${roundedClassName}`}
+      >
+        <input
+          type="text"
+          placeholder="Search textbooks, furniture, electronics..."
+          value={query}
+          onChange={(event) => onQueryChange(event.target.value)}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          aria-label="Search marketplace listings"
+          className="min-w-0 flex-1 bg-transparent px-4 py-2.5 text-sm text-[#2a1714] outline-none placeholder:text-[#8a736b]"
+        />
+        <button
+          type="submit"
+          aria-label="Search"
+          className="m-1 rounded-full bg-[rgb(var(--brand-accent))] px-4 py-2.5 text-white transition hover:brightness-95 active:scale-95"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+            className="h-5 w-5"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M21 21l-4.35-4.35m1.6-4.15a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        </button>
+      </form>
+
+      {showSuggestions ? (
+        <div className="absolute left-0 right-0 top-[calc(100%+0.45rem)] z-50 overflow-hidden rounded-2xl border border-[#eadccf] bg-[#fffaf6] shadow-[0_18px_40px_rgba(78,34,24,0.14)]">
+          {suggestions.map((suggestion) => (
+            <button
+              key={`${suggestion.type}:${suggestion.query}`}
+              type="button"
+              onMouseDown={(event) => {
+                event.preventDefault();
+                onSuggestionSelect(suggestion.query);
+              }}
+              className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left transition hover:bg-[#fff1e8]"
+            >
+              <span className="truncate text-sm font-medium text-[#2a1714]">{suggestion.label}</span>
+              <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#a06050]">
+                {suggestion.type}
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -22,11 +146,28 @@ export default function Navbar() {
   const [hidden, setHidden] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [allListings, setAllListings] = useState<ListingRecord[]>([]);
+  const [searchFocused, setSearchFocused] = useState(false);
   const currentSearchQuery = searchParams.get("search") ?? "";
 
   useEffect(() => {
     setQuery(currentSearchQuery);
   }, [currentSearchQuery]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadListings() {
+      const result = await fetchListings();
+      if (!active || result.error) return;
+      setAllListings(result.data);
+    }
+
+    loadListings();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     let lastY = window.scrollY;
@@ -64,9 +205,21 @@ export default function Navbar() {
       ? `/search?search=${encodeURIComponent(trimmedQuery)}`
       : "/search";
 
+    setSearchFocused(false);
     setMobileOpen(false);
     router.push(target);
   }
+
+  function handleSuggestionSelect(value: string) {
+    const trimmedQuery = value.trim();
+    setQuery(trimmedQuery);
+    setSearchFocused(false);
+    setMobileOpen(false);
+    router.push(`/search?search=${encodeURIComponent(trimmedQuery)}`);
+  }
+
+  const suggestions = getSearchSuggestions(query, allListings);
+  const showSuggestions = searchFocused && query.trim().length > 0 && suggestions.length > 0;
 
   const hideNavbar =
     pathname === "/login" || pathname === "/reset-password" || pathname?.startsWith("/onboarding");
@@ -98,39 +251,17 @@ export default function Navbar() {
 
           <div className="hidden min-w-0 flex-1 items-center gap-3 lg:flex">
             <div className="flex min-w-0 flex-1 justify-center">
-              <form
+              <SearchForm
+                query={query}
+                onQueryChange={setQuery}
                 onSubmit={handleSearchSubmit}
-                className="flex w-full max-w-md items-center overflow-hidden rounded-full border border-white/40 bg-white shadow-[0_10px_28px_rgba(78,34,24,0.10)]"
-              >
-                <input
-                  type="text"
-                  placeholder="Search textbooks, furniture, electronics..."
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  aria-label="Search marketplace listings"
-                  className="min-w-0 flex-1 bg-transparent px-4 py-2.5 text-sm text-[#2a1714] outline-none placeholder:text-[#8a736b]"
-                />
-                <button
-                  type="submit"
-                  aria-label="Search"
-                  className="m-1 rounded-full bg-[rgb(var(--brand-accent))] px-4 py-2.5 text-white transition hover:brightness-95 active:scale-95"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="h-5 w-5"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M21 21l-4.35-4.35m1.6-4.15a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                </button>
-              </form>
+                onSuggestionSelect={handleSuggestionSelect}
+                suggestions={suggestions}
+                showSuggestions={showSuggestions}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setTimeout(() => setSearchFocused(false), 100)}
+                roundedClassName="rounded-full"
+              />
             </div>
 
             <div className="flex items-center gap-1">
@@ -188,39 +319,19 @@ export default function Navbar() {
               <AvatarMenu />
             </div>
 
-            <form
-              onSubmit={handleSearchSubmit}
-              className="mb-2 flex items-center overflow-hidden rounded-xl border border-white/45 bg-white shadow-[0_8px_22px_rgba(78,34,24,0.08)]"
-            >
-              <input
-                type="text"
-                placeholder="Search textbooks, furniture, electronics..."
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                aria-label="Search marketplace listings"
-                className="min-w-0 flex-1 bg-transparent px-4 py-2.5 text-sm text-[#2a1714] outline-none placeholder:text-[#8a736b]"
+            <div className="mb-2">
+              <SearchForm
+                query={query}
+                onQueryChange={setQuery}
+                onSubmit={handleSearchSubmit}
+                onSuggestionSelect={handleSuggestionSelect}
+                suggestions={suggestions}
+                showSuggestions={showSuggestions}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setTimeout(() => setSearchFocused(false), 100)}
+                roundedClassName="rounded-xl"
               />
-              <button
-                type="submit"
-                aria-label="Search"
-                className="m-1 rounded-full bg-[rgb(var(--brand-accent))] px-4 py-2.5 text-white transition hover:brightness-95 active:scale-95"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                  className="h-5 w-5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M21 21l-4.35-4.35m1.6-4.15a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </button>
-            </form>
+            </div>
 
             <div className="grid gap-1">
               {links.map(({ href, label }) => {

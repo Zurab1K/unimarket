@@ -9,31 +9,13 @@ import {
   type ListingInput,
   type ListingRecord,
 } from "@/lib/supabaseData";
+import { LISTING_CATEGORIES, LISTING_CONDITIONS } from "@/lib/listingOptions";
 
 interface ListingFormModalProps {
   listing?: ListingRecord | null;
   onClose: () => void;
   onSaved: (listing: ListingRecord) => void;
 }
-
-const CATEGORIES = [
-  "Textbooks",
-  "Electronics",
-  "Furniture",
-  "Clothing",
-  "Dorm Essentials",
-  "Sports & Outdoors",
-  "Transportation",
-  "Other",
-];
-
-const CONDITIONS = [
-  { label: "New", value: "new" },
-  { label: "Like New", value: "like-new" },
-  { label: "Good", value: "good" },
-  { label: "Fair", value: "fair" },
-  { label: "Poor", value: "poor" },
-];
 
 const EMPTY_FORM: ListingInput = {
   title: "",
@@ -189,7 +171,7 @@ export default function ListingFormModal({
                 disabled={saving}
                 className="input"
               >
-                {CATEGORIES.map((c) => (
+                {LISTING_CATEGORIES.map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
@@ -201,7 +183,7 @@ export default function ListingFormModal({
                 disabled={saving}
                 className="input"
               >
-                {CONDITIONS.map((c) => (
+                {LISTING_CONDITIONS.map((c) => (
                   <option key={c.value} value={c.value}>{c.label}</option>
                 ))}
               </select>

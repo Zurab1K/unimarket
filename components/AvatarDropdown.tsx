@@ -140,6 +140,16 @@ export default function AvatarMenu({
               type="button"
               onClick={() => {
                 setOpen(false);
+                router.push("/listings");
+              }}
+              className="block w-full rounded-xl px-3 py-2.5 text-left text-sm font-medium text-[#2d1a16] transition hover:bg-[#f8f1eb]"
+            >
+              My listings
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
                 router.push("/settings");
               }}
               className="block w-full rounded-xl px-3 py-2.5 text-left text-sm font-medium text-[#2d1a16] transition hover:bg-[#f8f1eb]"

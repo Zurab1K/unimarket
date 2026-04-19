@@ -1,12 +1,12 @@
 "use client";
 
 import ListingCard from "@/components/ListingCard";
-import SortDropdown, { SortOption } from "@/components/SortDropdown";
 import ListingFormModal from "@/components/ListingFormModal";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuthGuard } from "@/lib/useAuthGuard";
 import { fetchListings, fetchSavedListingIds, type ListingRecord } from "@/lib/supabaseData";
+import { supabase } from "@/lib/supabaseClient";
 
 type ListingCardViewModel = {
   id: number;
@@ -54,11 +54,11 @@ function toViewModel(listing: ListingRecord): ListingCardViewModel {
 }
 
 export default function MarketplaceHome() {
-  const [sortBy, setSortBy] = useState<SortOption>("latest");
   const [listings, setListings] = useState<ListingCardViewModel[]>([]);
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
   const [loadingListings, setLoadingListings] = useState(true);
   const [listingsError, setListingsError] = useState<string | null>(null);
+  const [hiddenOwnListingsCount, setHiddenOwnListingsCount] = useState(0);
   const [showCreate, setShowCreate] = useState(false);
   const ready = useAuthGuard();
 
@@ -67,21 +67,31 @@ export default function MarketplaceHome() {
 
     async function load() {
       setLoadingListings(true);
-      const [result, saved] = await Promise.all([
+      const [result, saved, authResult] = await Promise.all([
         fetchListings(),
         fetchSavedListingIds(),
+        supabase.auth.getUser(),
       ]);
       if (!active) return;
+
+      const currentUserId = authResult.data.user?.id ?? null;
 
       if (result.error) {
         setListingsError(result.error.message);
         setListings([]);
+        setHiddenOwnListingsCount(0);
       } else {
+        const availableListings = result.data.filter((listing) => listing.status === "available");
+        const ownListings = currentUserId
+          ? availableListings.filter((listing) => listing.sellerId === currentUserId)
+          : [];
+
         setListings(
-          result.data
-            .filter((l) => l.status === "available")
+          availableListings
+            .filter((listing) => listing.sellerId !== currentUserId)
             .map(toViewModel),
         );
+        setHiddenOwnListingsCount(ownListings.length);
         setSavedIds(new Set(saved));
         setListingsError(null);
       }
@@ -95,14 +105,6 @@ export default function MarketplaceHome() {
   }, []);
 
   if (!ready) return null;
-
-  const sortedListings = [...listings].sort((a, b) => {
-    if (sortBy === "latest") return a.date - b.date;
-    if (sortBy === "oldest") return b.date - a.date;
-    if (sortBy === "priceLow") return a.price - b.price;
-    if (sortBy === "priceHigh") return b.price - a.price;
-    return 0;
-  });
 
   return (
     <main className="w-full">
@@ -140,15 +142,27 @@ export default function MarketplaceHome() {
             </span>
           </div>
 
-          <Link
-            href="#listings"
-            className="mt-8 flex items-center gap-2 rounded-full bg-[rgb(var(--brand-primary))] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(20,8,7,0.22)] transition hover:brightness-95 active:scale-95"
-          >
-            Browse listings
-            <span aria-hidden="true" className="text-base leading-none">
-              →
-            </span>
-          </Link>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="#listings"
+              className="flex items-center gap-2 rounded-full bg-[rgb(var(--brand-primary))] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(20,8,7,0.22)] transition hover:brightness-95 active:scale-95"
+            >
+              Browse listings
+              <span aria-hidden="true" className="text-base leading-none">
+                →
+              </span>
+            </Link>
+            <button
+              type="button"
+              onClick={() => setShowCreate(true)}
+              className="flex items-center gap-2 rounded-full bg-[rgb(var(--brand-accent))] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(232,140,65,0.28)] transition hover:brightness-95 active:scale-95"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              Sell an item
+            </button>
+          </div>
         </div>
       </section>
 
@@ -171,25 +185,8 @@ export default function MarketplaceHome() {
                   <div className="rounded-full bg-[#f1e4dc] px-4 py-2 text-sm font-medium text-[#855246]">
                     {loadingListings
                       ? "Checking marketplace…"
-                      : `${sortedListings.length} active listing${sortedListings.length === 1 ? "" : "s"}`}
+                      : `${listings.length} active listing${listings.length === 1 ? "" : "s"}`}
                   </div>
-                  <SortDropdown sortBy={sortBy} setSortBy={setSortBy} />
-                  <button
-                    type="button"
-                    onClick={() => setShowCreate(true)}
-                    className="flex items-center gap-2 rounded-full bg-[rgb(var(--brand-accent))] px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:brightness-95 active:scale-[0.97]"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                    Sell an item
-                  </button>
-                  <Link
-                    href="/my-listings"
-                    className="rounded-full border border-[#e0cfc6] bg-[#faf5f2] px-5 py-2.5 text-sm font-medium text-[#6d4037] transition hover:bg-[#f1e4dc]"
-                  >
-                    My listings
-                  </Link>
                 </div>
               </div>
 
@@ -212,15 +209,17 @@ export default function MarketplaceHome() {
               </p>
             )}
 
-            {!loadingListings && !listingsError && sortedListings.length === 0 && (
+            {!loadingListings && !listingsError && listings.length === 0 && (
               <p className="col-span-full mx-auto max-w-xl rounded-2xl border border-[#eadccf] bg-[#fffaf6] px-5 py-5 text-center text-sm leading-6 text-[#705f5a]">
-                No listings yet — be the first to post one!
+                {hiddenOwnListingsCount > 0
+                  ? "No listings from other sellers yet. Your own items are available in My listings."
+                  : "No listings yet — be the first to post one!"}
               </p>
             )}
 
             {!loadingListings &&
               !listingsError &&
-              sortedListings.map((item) => (
+              listings.map((item) => (
                 <ListingCard
                   key={item.id}
                   id={item.id}

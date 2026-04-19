@@ -402,7 +402,7 @@ export default function ListingDetailPage() {
             {/* Owner actions */}
             {isOwner && (
               <Link
-                href="/my-listings"
+                href="/listings"
                 className="inline-flex items-center gap-2 rounded-full border border-[#e0cfc6] bg-[#faf5f2] px-5 py-3 text-sm font-medium text-[#6d4037] transition hover:bg-[#f1e4dc]"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">

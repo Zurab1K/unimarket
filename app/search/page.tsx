@@ -6,6 +6,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthGuard } from "@/lib/useAuthGuard";
 import { fetchListings, fetchSavedListingIds, type ListingRecord } from "@/lib/supabaseData";
+import { LISTING_CATEGORIES, LISTING_CONDITIONS } from "@/lib/listingOptions";
 
 type ListingCardViewModel = {
   id: number;
@@ -21,6 +22,7 @@ type ListingCardViewModel = {
 };
 
 type PriceBand = "all" | "under25" | "25to100" | "100to500" | "500plus";
+type PostedWithin = "any" | "24h" | "7d" | "30d";
 
 function formatRelativeAge(createdAt: string) {
   const timestamp = Date.parse(createdAt);
@@ -38,7 +40,8 @@ function formatRelativeAge(createdAt: string) {
 }
 
 function toViewModel(listing: ListingRecord): ListingCardViewModel {
-  const parts = [listing.location, formatRelativeAge(listing.createdAt)].filter(Boolean);
+  const pickupLocation = listing.location?.trim() || "Campus meetup";
+  const parts = [pickupLocation, formatRelativeAge(listing.createdAt)].filter(Boolean);
 
   return {
     id: listing.id,
@@ -100,6 +103,7 @@ function SearchPageContent() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
   const [priceBand, setPriceBand] = useState<PriceBand>("all");
+  const [postedWithin, setPostedWithin] = useState<PostedWithin>("any");
   const [negotiableOnly, setNegotiableOnly] = useState(false);
   const searchQuery = searchParams.get("search")?.trim() ?? "";
   const normalizedSearchQuery = searchQuery.toLowerCase();
@@ -130,27 +134,19 @@ function SearchPageContent() {
     };
   }, []);
 
-  const availableCategories = useMemo(
-    () =>
-      Array.from(
-        new Set(listings.map((listing) => listing.category).filter(Boolean)),
-      ).sort(),
-    [listings],
-  );
-  const availableConditions = useMemo(
-    () =>
-      Array.from(
-        new Set(listings.map((listing) => listing.condition).filter(Boolean)),
-      ).sort(),
-    [listings],
-  );
-
   const filteredListings = useMemo(() => {
     const matchesPriceBand = (price: number) => {
       if (priceBand === "under25") return price < 25;
       if (priceBand === "25to100") return price >= 25 && price <= 100;
       if (priceBand === "100to500") return price > 100 && price <= 500;
       if (priceBand === "500plus") return price > 500;
+      return true;
+    };
+
+    const matchesPostedWithin = (ageInMinutes: number) => {
+      if (postedWithin === "24h") return ageInMinutes <= 60 * 24;
+      if (postedWithin === "7d") return ageInMinutes <= 60 * 24 * 7;
+      if (postedWithin === "30d") return ageInMinutes <= 60 * 24 * 30;
       return true;
     };
 
@@ -168,6 +164,7 @@ function SearchPageContent() {
         matchesCategory &&
         matchesCondition &&
         matchesPriceBand(listing.price) &&
+        matchesPostedWithin(listing.date) &&
         matchesNegotiable
       );
     });
@@ -183,6 +180,7 @@ function SearchPageContent() {
     listings,
     negotiableOnly,
     normalizedSearchQuery,
+    postedWithin,
     priceBand,
     selectedCategories,
     selectedConditions,
@@ -258,6 +256,7 @@ function SearchPageContent() {
               setSelectedCategories([]);
               setSelectedConditions([]);
               setPriceBand("all");
+              setPostedWithin("any");
               setNegotiableOnly(false);
             }}
             className="text-sm font-semibold text-[rgb(var(--brand-primary))] underline-offset-4 transition hover:underline"
@@ -277,6 +276,7 @@ function SearchPageContent() {
                     setSelectedCategories([]);
                     setSelectedConditions([]);
                     setPriceBand("all");
+                    setPostedWithin("any");
                     setNegotiableOnly(false);
                   }}
                   className="text-sm font-semibold text-[rgb(var(--brand-primary))] underline-offset-4 transition hover:underline"
@@ -291,20 +291,16 @@ function SearchPageContent() {
                     Categories
                   </h3>
                   <div className="mt-3 space-y-1">
-                    {availableCategories.length > 0 ? (
-                      availableCategories.map((category) => (
-                        <FilterCheckbox
-                          key={category}
-                          label={category}
-                          checked={selectedCategories.includes(category)}
-                          onChange={(checked) =>
-                            setSelectedCategories((current) => toggleValue(current, category, checked))
-                          }
-                        />
-                      ))
-                    ) : (
-                      <p className="text-sm text-[#8a736b]">No categories yet.</p>
-                    )}
+                    {LISTING_CATEGORIES.map((category) => (
+                      <FilterCheckbox
+                        key={category}
+                        label={category}
+                        checked={selectedCategories.includes(category)}
+                        onChange={(checked) =>
+                          setSelectedCategories((current) => toggleValue(current, category, checked))
+                        }
+                      />
+                    ))}
                   </div>
                 </section>
 
@@ -313,22 +309,18 @@ function SearchPageContent() {
                     Condition
                   </h3>
                   <div className="mt-3 space-y-1">
-                    {availableConditions.length > 0 ? (
-                      availableConditions.map((condition) => (
-                        <FilterCheckbox
-                          key={condition}
-                          label={condition}
-                          checked={selectedConditions.includes(condition)}
-                          onChange={(checked) =>
-                            setSelectedConditions((current) =>
-                              toggleValue(current, condition, checked),
-                            )
-                          }
-                        />
-                      ))
-                    ) : (
-                      <p className="text-sm text-[#8a736b]">No conditions yet.</p>
-                    )}
+                    {LISTING_CONDITIONS.map((condition) => (
+                      <FilterCheckbox
+                        key={condition.value}
+                        label={condition.label}
+                        checked={selectedConditions.includes(condition.value)}
+                        onChange={(checked) =>
+                          setSelectedConditions((current) =>
+                            toggleValue(current, condition.value, checked),
+                          )
+                        }
+                      />
+                    ))}
                   </div>
                 </section>
 
@@ -350,6 +342,33 @@ function SearchPageContent() {
                         onClick={() => setPriceBand(option.value as PriceBand)}
                         className={`rounded-xl border px-3 py-2 text-left text-sm font-medium transition ${
                           priceBand === option.value
+                            ? "border-[rgb(var(--brand-accent))] bg-[rgba(var(--brand-accent),0.10)] text-[#5d3127]"
+                            : "border-[#eadccf] bg-white text-[#6d4037] hover:bg-[#fff5ee]"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-[#8a736b]">
+                    Posted
+                  </h3>
+                  <div className="mt-3 grid gap-2">
+                    {[
+                      { value: "any", label: "Any time" },
+                      { value: "24h", label: "Last 24 hours" },
+                      { value: "7d", label: "Last 7 days" },
+                      { value: "30d", label: "Last 30 days" },
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setPostedWithin(option.value as PostedWithin)}
+                        className={`rounded-xl border px-3 py-2 text-left text-sm font-medium transition ${
+                          postedWithin === option.value
                             ? "border-[rgb(var(--brand-accent))] bg-[rgba(var(--brand-accent),0.10)] text-[#5d3127]"
                             : "border-[#eadccf] bg-white text-[#6d4037] hover:bg-[#fff5ee]"
                         }`}
