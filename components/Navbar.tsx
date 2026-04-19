@@ -61,8 +61,8 @@ export default function Navbar() {
     event.preventDefault();
     const trimmedQuery = query.trim();
     const target = trimmedQuery
-      ? `/home?search=${encodeURIComponent(trimmedQuery)}#listings`
-      : "/home#listings";
+      ? `/search?search=${encodeURIComponent(trimmedQuery)}`
+      : "/search";
 
     setMobileOpen(false);
     router.push(target);
