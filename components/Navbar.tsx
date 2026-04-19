@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import AvatarMenu from "./AvatarDropdown";
 
@@ -17,8 +17,16 @@ const NAVBAR_LOGO_SRC = "/unimarket-logo.png?v=20260418";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [hidden, setHidden] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const currentSearchQuery = searchParams.get("search") ?? "";
+
+  useEffect(() => {
+    setQuery(currentSearchQuery);
+  }, [currentSearchQuery]);
 
   useEffect(() => {
     let lastY = window.scrollY;
@@ -48,6 +56,17 @@ export default function Navbar() {
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
+
+  function handleSearchSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const trimmedQuery = query.trim();
+    const target = trimmedQuery
+      ? `/home?search=${encodeURIComponent(trimmedQuery)}#listings`
+      : "/home#listings";
+
+    setMobileOpen(false);
+    router.push(target);
+  }
 
   const hideNavbar =
     pathname === "/login" || pathname === "/reset-password" || pathname?.startsWith("/onboarding");
@@ -79,14 +98,20 @@ export default function Navbar() {
 
           <div className="hidden min-w-0 flex-1 items-center gap-3 lg:flex">
             <div className="flex min-w-0 flex-1 justify-center">
-              <div className="flex w-full max-w-md items-center overflow-hidden rounded-full border border-white/40 bg-white shadow-[0_10px_28px_rgba(78,34,24,0.10)]">
+              <form
+                onSubmit={handleSearchSubmit}
+                className="flex w-full max-w-md items-center overflow-hidden rounded-full border border-white/40 bg-white shadow-[0_10px_28px_rgba(78,34,24,0.10)]"
+              >
                 <input
                   type="text"
                   placeholder="Search textbooks, furniture, electronics..."
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  aria-label="Search marketplace listings"
                   className="min-w-0 flex-1 bg-transparent px-4 py-2.5 text-sm text-[#2a1714] outline-none placeholder:text-[#8a736b]"
                 />
                 <button
-                  type="button"
+                  type="submit"
                   aria-label="Search"
                   className="m-1 rounded-full bg-[rgb(var(--brand-accent))] px-4 py-2.5 text-white transition hover:brightness-95 active:scale-95"
                 >
@@ -105,7 +130,7 @@ export default function Navbar() {
                     />
                   </svg>
                 </button>
-              </div>
+              </form>
             </div>
 
             <div className="flex items-center gap-1">
@@ -163,14 +188,20 @@ export default function Navbar() {
               <AvatarMenu />
             </div>
 
-            <div className="mb-2 flex items-center overflow-hidden rounded-xl border border-white/45 bg-white shadow-[0_8px_22px_rgba(78,34,24,0.08)]">
+            <form
+              onSubmit={handleSearchSubmit}
+              className="mb-2 flex items-center overflow-hidden rounded-xl border border-white/45 bg-white shadow-[0_8px_22px_rgba(78,34,24,0.08)]"
+            >
               <input
                 type="text"
                 placeholder="Search textbooks, furniture, electronics..."
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                aria-label="Search marketplace listings"
                 className="min-w-0 flex-1 bg-transparent px-4 py-2.5 text-sm text-[#2a1714] outline-none placeholder:text-[#8a736b]"
               />
               <button
-                type="button"
+                type="submit"
                 aria-label="Search"
                 className="m-1 rounded-full bg-[rgb(var(--brand-accent))] px-4 py-2.5 text-white transition hover:brightness-95 active:scale-95"
               >
@@ -189,7 +220,7 @@ export default function Navbar() {
                   />
                 </svg>
               </button>
-            </div>
+            </form>
 
             <div className="grid gap-1">
               {links.map(({ href, label }) => {

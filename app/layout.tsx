@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { Suspense } from "react";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import ChatBotWidget from "@/components/ChatBotWidget";
@@ -30,7 +31,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistMono.variable} min-h-screen bg-[#f6f0ea] antialiased`}>
         <div className="flex min-h-screen flex-col">
-          <Navbar />
+          <Suspense fallback={null}>
+            <Navbar />
+          </Suspense>
           <div className="flex-1">{children}</div>
           <Footer />
           <ChatBotWidget />

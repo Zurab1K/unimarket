@@ -3,10 +3,11 @@
 import ListingCard from "@/components/ListingCard";
 import SortDropdown, { SortOption } from "@/components/SortDropdown";
 import ListingFormModal from "@/components/ListingFormModal";
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAuthGuard } from "@/lib/useAuthGuard";
 import { fetchListings, fetchSavedListingIds, type ListingRecord } from "@/lib/supabaseData";
-import Link from "next/link";
 
 type ListingCardViewModel = {
   id: number;
@@ -15,6 +16,7 @@ type ListingCardViewModel = {
   price: number;
   image: string;
   date: number;
+  searchText: string;
 };
 
 function formatRelativeAge(createdAt: string) {
@@ -45,6 +47,15 @@ function toViewModel(listing: ListingRecord): ListingCardViewModel {
     location: parts.join(" • ") || listing.category,
     price: listing.price,
     image: listing.images[0] ?? "/placeholder-avatar-picture.jpg",
+    searchText: [
+      listing.title,
+      listing.description,
+      listing.category,
+      listing.location,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase(),
     date:
       Math.max(
         1,
@@ -53,14 +64,17 @@ function toViewModel(listing: ListingRecord): ListingCardViewModel {
   };
 }
 
-export default function MarketplaceHome() {
+function MarketplaceHomeContent() {
   const [sortBy, setSortBy] = useState<SortOption>("latest");
   const [listings, setListings] = useState<ListingCardViewModel[]>([]);
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
   const [loadingListings, setLoadingListings] = useState(true);
   const [listingsError, setListingsError] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const searchParams = useSearchParams();
   const ready = useAuthGuard();
+  const searchQuery = searchParams.get("search")?.trim() ?? "";
+  const normalizedSearchQuery = searchQuery.toLowerCase();
 
   useEffect(() => {
     let active = true;
@@ -94,15 +108,21 @@ export default function MarketplaceHome() {
     };
   }, []);
 
-  if (!ready) return null;
+  const filteredListings = useMemo(() => {
+    const visibleListings = normalizedSearchQuery
+      ? listings.filter((listing) => listing.searchText.includes(normalizedSearchQuery))
+      : listings;
 
-  const sortedListings = [...listings].sort((a, b) => {
-    if (sortBy === "latest") return a.date - b.date;
-    if (sortBy === "oldest") return b.date - a.date;
-    if (sortBy === "priceLow") return a.price - b.price;
-    if (sortBy === "priceHigh") return b.price - a.price;
-    return 0;
-  });
+    return [...visibleListings].sort((a, b) => {
+      if (sortBy === "latest") return a.date - b.date;
+      if (sortBy === "oldest") return b.date - a.date;
+      if (sortBy === "priceLow") return a.price - b.price;
+      if (sortBy === "priceHigh") return b.price - a.price;
+      return 0;
+    });
+  }, [listings, normalizedSearchQuery, sortBy]);
+
+  if (!ready) return null;
 
   return (
     <main className="w-full">
@@ -163,15 +183,30 @@ export default function MarketplaceHome() {
                     Featured Listings
                   </p>
                   <h2 className="mt-2 text-3xl font-semibold text-[#2a1714]">
-                    Latest listings
+                    {searchQuery ? `Results for "${searchQuery}"` : "Latest listings"}
                   </h2>
+                  {searchQuery ? (
+                    <div className="mt-3 flex flex-wrap items-center gap-3">
+                      <p className="rounded-full border border-[#eadccf] bg-[#fff4eb] px-4 py-2 text-sm font-medium text-[#6d4037]">
+                        Navbar search is active.
+                      </p>
+                      <Link
+                        href="/home#listings"
+                        className="text-sm font-semibold text-[rgb(var(--brand-primary))] underline-offset-4 transition hover:underline"
+                      >
+                        Clear search
+                      </Link>
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3 xl:justify-end">
                   <div className="rounded-full bg-[#f1e4dc] px-4 py-2 text-sm font-medium text-[#855246]">
                     {loadingListings
                       ? "Checking marketplace…"
-                      : `${sortedListings.length} active listing${sortedListings.length === 1 ? "" : "s"}`}
+                      : searchQuery
+                        ? `${filteredListings.length} matching listing${filteredListings.length === 1 ? "" : "s"}`
+                        : `${filteredListings.length} active listing${filteredListings.length === 1 ? "" : "s"}`}
                   </div>
                   <SortDropdown sortBy={sortBy} setSortBy={setSortBy} />
                   <button
@@ -194,8 +229,9 @@ export default function MarketplaceHome() {
               </div>
 
               <p className="text-sm leading-6 text-[#745f59] sm:text-base">
-                New posts land here first. Sort what you see, save what you
-                like, and message sellers when something stands out.
+                {searchQuery
+                  ? "Results are filtered against the current Supabase-backed listings instead of using the old dedicated search page."
+                  : "New posts land here first. Sort what you see, save what you like, and message sellers when something stands out."}
               </p>
             </div>
           </div>
@@ -213,15 +249,17 @@ export default function MarketplaceHome() {
               </p>
             )}
 
-            {!loadingListings && !listingsError && sortedListings.length === 0 && (
+            {!loadingListings && !listingsError && filteredListings.length === 0 && (
               <p className="col-span-full mx-auto max-w-xl rounded-2xl border border-[#eadccf] bg-[#fffaf6] px-5 py-5 text-center text-sm leading-6 text-[#705f5a]">
-                No listings yet — be the first to post one!
+                {searchQuery
+                  ? `No listings matched "${searchQuery}". Try a different keyword from the navbar search.`
+                  : "No listings yet — be the first to post one!"}
               </p>
             )}
 
             {!loadingListings &&
               !listingsError &&
-              sortedListings.map((item) => (
+              filteredListings.map((item) => (
                 <ListingCard
                   key={item.id}
                   id={item.id}
@@ -248,5 +286,13 @@ export default function MarketplaceHome() {
         />
       )}
     </main>
+  );
+}
+
+export default function MarketplaceHome() {
+  return (
+    <Suspense fallback={null}>
+      <MarketplaceHomeContent />
+    </Suspense>
   );
 }
