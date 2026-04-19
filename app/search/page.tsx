@@ -2,9 +2,8 @@
 
 import ListingCard from "@/components/ListingCard";
 import SortDropdown, { SortOption } from "@/components/SortDropdown";
-import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthGuard } from "@/lib/useAuthGuard";
 import { fetchListings, fetchSavedListingIds, type ListingRecord } from "@/lib/supabaseData";
 
@@ -90,6 +89,7 @@ function FilterCheckbox({
 
 function SearchPageContent() {
   const ready = useAuthGuard();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [sortBy, setSortBy] = useState<SortOption>("latest");
   const [listings, setListings] = useState<ListingCardViewModel[]>([]);
@@ -199,33 +199,47 @@ function SearchPageContent() {
   return (
     <main className="min-h-screen bg-[#f6f0ea] px-2 pb-24 pt-20 sm:px-3">
       <div className="mx-auto flex w-full max-w-[calc(100vw-1rem)] flex-col gap-6">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="ml-5 mt-3 flex items-center gap-2 self-start text-sm font-medium text-[#7a5a52] transition hover:text-[rgb(var(--brand-primary))]"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+            />
+          </svg>
+          Back
+        </button>
+
         <section className="rounded-[2rem] border border-[#eadccf] bg-[#fffaf6] px-5 py-6 shadow-[0_12px_30px_rgba(75,36,28,0.05)] sm:px-8 sm:py-7">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-3xl">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[rgb(var(--brand-primary))]">
                 Search Results
               </p>
-              <h1 className="mt-2 text-3xl font-semibold text-[#2a1714]">
+
+              <h1 className="mt-3 text-3xl font-semibold text-[#2a1714]">
                 {searchQuery ? `Showing results for "${searchQuery}"` : "Browse all listings"}
               </h1>
-              <p className="mt-2 text-sm leading-6 text-[#745f59] sm:text-base">
-                This page replaces the old in-hero search flow. Search starts in the navbar, then lands here with filters on the left and products on the right.
-              </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3 lg:justify-end">
               <div className="rounded-full bg-[#f1e4dc] px-4 py-2 text-sm font-medium text-[#855246]">
                 {loadingListings
                   ? "Checking marketplace…"
                   : `${filteredListings.length} result${filteredListings.length === 1 ? "" : "s"}`}
               </div>
               <SortDropdown sortBy={sortBy} setSortBy={setSortBy} />
-              <Link
-                href="/home#listings"
-                className="rounded-full border border-[#e0cfc6] bg-[#faf5f2] px-5 py-2.5 text-sm font-medium text-[#6d4037] transition hover:bg-[#f1e4dc]"
-              >
-                Back home
-              </Link>
             </div>
           </div>
         </section>
