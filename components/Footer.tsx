@@ -83,7 +83,7 @@ export default function Footer() {
             >
               Team
             </Link>
-            <p className="sm:justify-self-end">© 2026 UniMarket</p>
+            <p className="sm:justify-self-end">© 2026 Zurabi Kochiashvili</p>
           </div>
         </div>
       </div>
