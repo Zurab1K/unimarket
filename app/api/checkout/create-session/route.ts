@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+function getStripe() {
+  const stripeSecretKey = process.env.STRIPE_SECRET_KEY?.trim();
+
+  if (!stripeSecretKey) {
+    throw new Error("Stripe is not configured on this deployment.");
+  }
+
+  return new Stripe(stripeSecretKey);
+}
 
 export async function POST(request: NextRequest) {
   try {
+    const stripe = getStripe();
     const { listingId, title, priceCents, sellerId, buyerId } =
       await request.json();
 

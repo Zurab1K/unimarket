@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+function getStripe() {
+  const stripeSecretKey = process.env.STRIPE_SECRET_KEY?.trim();
+
+  if (!stripeSecretKey) {
+    throw new Error("Stripe is not configured on this deployment.");
+  }
+
+  return new Stripe(stripeSecretKey);
+}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -13,6 +21,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const stripe = getStripe();
+    const supabaseAdmin = getSupabaseAdmin();
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (session.payment_status !== "paid") {
