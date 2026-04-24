@@ -5,12 +5,14 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { fetchListings, type ListingRecord } from "@/lib/supabaseData";
+import { supabase } from "@/lib/supabaseClient";
 import { LISTING_CATEGORIES } from "@/lib/listingOptions";
 import AvatarMenu from "./AvatarDropdown";
 
 const links = [
   { href: "/home", label: "Home" },
   { href: "/messages", label: "Messages" },
+  { href: "/transactions", label: "Transactions" },
   { href: "/saved", label: "Saved" },
   { href: "/cart", label: "Cart" },
 ];
@@ -139,6 +141,42 @@ function SearchForm({
   );
 }
 
+function useUnreadCount() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let userId: string | null = null;
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) return;
+      userId = session.user.id;
+
+      supabase
+        .from("messages")
+        .select("id", { count: "exact", head: true })
+        .eq("receiver_id", userId)
+        .eq("is_read", false)
+        .then(({ count: c }) => setCount(c ?? 0));
+
+      const channel = supabase
+        .channel("navbar-unread")
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `receiver_id=eq.${userId}` },
+          () => setCount((n) => n + 1))
+        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "messages", filter: `receiver_id=eq.${userId}` },
+          (payload) => {
+            if ((payload.new as { is_read: boolean }).is_read && !(payload.old as { is_read: boolean }).is_read) {
+              setCount((n) => Math.max(0, n - 1));
+            }
+          })
+        .subscribe();
+
+      return () => { supabase.removeChannel(channel); };
+    });
+  }, []);
+
+  return count;
+}
+
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -148,6 +186,7 @@ export default function Navbar() {
   const [query, setQuery] = useState("");
   const [allListings, setAllListings] = useState<ListingRecord[]>([]);
   const [searchFocused, setSearchFocused] = useState(false);
+  const unreadCount = useUnreadCount();
   const currentSearchQuery = searchParams.get("search") ?? "";
 
   useEffect(() => {
@@ -267,17 +306,23 @@ export default function Navbar() {
             <div className="flex items-center gap-1">
               {links.map(({ href, label }) => {
                 const isActive = pathname === href;
+                const badge = href === "/messages" && unreadCount > 0 ? unreadCount : 0;
                 return (
                   <Link
                     key={href}
                     href={href}
-                    className={`rounded-full px-4 py-2 text-sm font-semibold tracking-[0.01em] transition ${
+                    className={`relative rounded-full px-4 py-2 text-sm font-semibold tracking-[0.01em] transition ${
                       isActive
                         ? "bg-[rgb(var(--brand-accent))] text-white shadow-sm"
                         : "text-[#5d3b34] hover:bg-white/34 hover:text-[#2f1a15]"
                     }`}
                   >
                     {label}
+                    {badge > 0 && (
+                      <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white shadow">
+                        {badge > 9 ? "9+" : badge}
+                      </span>
+                    )}
                   </Link>
                 );
               })}
@@ -336,17 +381,23 @@ export default function Navbar() {
             <div className="grid gap-1">
               {links.map(({ href, label }) => {
                 const isActive = pathname === href;
+                const badge = href === "/messages" && unreadCount > 0 ? unreadCount : 0;
                 return (
                   <Link
                     key={href}
                     href={href}
-                    className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+                    className={`flex items-center justify-between rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
                       isActive
                         ? "bg-[rgb(var(--brand-accent))] text-white shadow-sm"
                         : "text-[#5d3b34] hover:bg-white/35 hover:text-[#2f1a15]"
                     }`}
                   >
                     {label}
+                    {badge > 0 && (
+                      <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white">
+                        {badge > 9 ? "9+" : badge}
+                      </span>
+                    )}
                   </Link>
                 );
               })}
