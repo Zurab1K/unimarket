@@ -334,13 +334,12 @@ function MessagesPageContent() {
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto space-y-3 bg-[rgba(255,250,246,0.72)] px-4 py-4 sm:px-6">
+              <div className="flex-1 overflow-y-auto bg-[rgba(255,250,246,0.72)] px-4 sm:px-6">
+                <div className="flex min-h-full flex-col justify-end gap-3 py-4">
                 {messagesLoading ? (
                   <p className="text-center text-sm text-[#8a736b]">Loading messages…</p>
                 ) : messages.length === 0 ? (
-                  <div className="flex h-full items-center justify-center">
-                    <p className="text-sm text-[#8a736b]">No messages yet. Start the conversation!</p>
-                  </div>
+                  <p className="text-center text-sm text-[#8a736b]">No messages yet. Start the conversation!</p>
                 ) : (
                   messages.map((message) => (
                     <div
@@ -374,6 +373,7 @@ function MessagesPageContent() {
                   ))
                 )}
                 <div ref={messagesEndRef} />
+                </div>
               </div>
 
               {/* Message input */}
@@ -428,13 +428,12 @@ function MessagesPageContent() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto space-y-3 bg-[rgba(255,250,246,0.72)] px-4 py-4">
+            <div className="flex-1 overflow-y-auto bg-[rgba(255,250,246,0.72)] px-4">
+              <div className="flex min-h-full flex-col justify-end gap-3 py-4">
               {messagesLoading ? (
                 <p className="text-center text-sm text-[#8a736b]">Loading messages…</p>
               ) : messages.length === 0 ? (
-                <div className="flex h-full items-center justify-center">
-                  <p className="text-center text-sm text-[#8a736b]">Start the conversation!</p>
-                </div>
+                <p className="text-center text-sm text-[#8a736b]">Start the conversation!</p>
               ) : (
                 messages.map((message) => (
                   <div
@@ -468,6 +467,7 @@ function MessagesPageContent() {
                 ))
               )}
               <div ref={messagesEndRef} />
+              </div>
             </div>
 
             {/* Message input */}
