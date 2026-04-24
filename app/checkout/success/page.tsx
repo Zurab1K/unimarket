@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -11,7 +11,7 @@ type OrderInfo = {
   listingTitle?: string;
 };
 
-export default function CheckoutSuccessPage() {
+function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
 
@@ -118,5 +118,21 @@ export default function CheckoutSuccessPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+function CheckoutSuccessFallback() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[#f6f0ea]">
+      <p className="text-sm text-[#8a736b]">Loading checkout details…</p>
+    </main>
+  );
+}
+
+export default function CheckoutSuccessPage() {
+  return (
+    <Suspense fallback={<CheckoutSuccessFallback />}>
+      <CheckoutSuccessContent />
+    </Suspense>
   );
 }
