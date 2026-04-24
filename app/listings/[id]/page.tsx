@@ -657,7 +657,6 @@ export default function ListingDetailPage() {
                     listing={listing}
                     currentUserId={currentUserId}
                     activeOffer={activeOffer}
-                    offerThread={offerThread}
                     showOfferForm={showOfferForm}
                     offerAmount={offerAmount}
                     offerMessage={offerMessage}
@@ -915,7 +914,6 @@ function BuyerOfferPanel({
   listing,
   currentUserId,
   activeOffer,
-  offerThread,
   showOfferForm,
   offerAmount,
   offerMessage,
@@ -933,7 +931,6 @@ function BuyerOfferPanel({
   listing: ListingRecord;
   currentUserId: string | null;
   activeOffer: Offer | null;
-  offerThread: Offer[];
   showOfferForm: boolean;
   offerAmount: string;
   offerMessage: string;
