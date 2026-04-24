@@ -1,12 +1,12 @@
 "use client";
 
 import ListingCard from "@/components/ListingCard";
-import SortDropdown, { SortOption } from "@/components/SortDropdown";
 import ListingFormModal from "@/components/ListingFormModal";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuthGuard } from "@/lib/useAuthGuard";
 import { fetchListings, fetchSavedListingIds, type ListingRecord } from "@/lib/supabaseData";
-import Link from "next/link";
+import { supabase } from "@/lib/supabaseClient";
 
 type ListingCardViewModel = {
   id: number;
@@ -54,11 +54,11 @@ function toViewModel(listing: ListingRecord): ListingCardViewModel {
 }
 
 export default function MarketplaceHome() {
-  const [sortBy, setSortBy] = useState<SortOption>("latest");
   const [listings, setListings] = useState<ListingCardViewModel[]>([]);
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
   const [loadingListings, setLoadingListings] = useState(true);
   const [listingsError, setListingsError] = useState<string | null>(null);
+  const [hiddenOwnListingsCount, setHiddenOwnListingsCount] = useState(0);
   const [showCreate, setShowCreate] = useState(false);
   const ready = useAuthGuard();
 
@@ -67,21 +67,31 @@ export default function MarketplaceHome() {
 
     async function load() {
       setLoadingListings(true);
-      const [result, saved] = await Promise.all([
+      const [result, saved, authResult] = await Promise.all([
         fetchListings(),
         fetchSavedListingIds(),
+        supabase.auth.getUser(),
       ]);
       if (!active) return;
+
+      const currentUserId = authResult.data.user?.id ?? null;
 
       if (result.error) {
         setListingsError(result.error.message);
         setListings([]);
+        setHiddenOwnListingsCount(0);
       } else {
+        const availableListings = result.data.filter((listing) => listing.status === "available");
+        const ownListings = currentUserId
+          ? availableListings.filter((listing) => listing.sellerId === currentUserId)
+          : [];
+
         setListings(
-          result.data
-            .filter((l) => l.status === "available")
+          availableListings
+            .filter((listing) => listing.sellerId !== currentUserId)
             .map(toViewModel),
         );
+        setHiddenOwnListingsCount(ownListings.length);
         setSavedIds(new Set(saved));
         setListingsError(null);
       }
@@ -96,118 +106,93 @@ export default function MarketplaceHome() {
 
   if (!ready) return null;
 
-  const sortedListings = [...listings].sort((a, b) => {
-    if (sortBy === "latest") return a.date - b.date;
-    if (sortBy === "oldest") return b.date - a.date;
-    if (sortBy === "priceLow") return a.price - b.price;
-    if (sortBy === "priceHigh") return b.price - a.price;
-    return 0;
-  });
-
   return (
     <main className="w-full">
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
-      <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-[#4a1716] via-[#7a2622] to-[#b44635] px-4 py-24 animate-gradientShift bg-[length:200%_200%]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,244,229,0.16),_transparent_34%),radial-gradient(circle_at_bottom_left,_rgba(255,198,141,0.2),_transparent_30%)]" />
+      <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#4a1716] bg-[url('/sbu-background-image1.jpg')] bg-cover bg-center px-4 py-24">
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(34,13,11,0.58),rgba(58,20,16,0.72)),radial-gradient(circle_at_top,rgba(255,244,229,0.18),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(255,198,141,0.2),transparent_30%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(49,19,16,0.52),rgba(49,19,16,0.2),rgba(49,19,16,0.52))]" />
         <div className="absolute left-[-6rem] top-24 h-48 w-48 rounded-full bg-[#ffe6d2]/10 blur-3xl" />
-        <div className="absolute bottom-16 right-[-5rem] h-56 w-56 rounded-full bg-[#ffd3a2]/20 blur-3xl" />
+        <div className="absolute bottom-16 right-[-5rem] h-56 w-56 rounded-full bg-[#ffd3a2]/18 blur-3xl" />
 
         <div className="relative mx-auto flex w-full max-w-5xl flex-col items-center text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/12 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-white/90">
-            Student Marketplace
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/14 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-white shadow-[0_8px_24px_rgba(20,8,7,0.22)]">
+            Made for campus move-ins and move-outs
           </div>
 
           <h1 className="mt-6 max-w-4xl text-4xl font-bold leading-tight text-white select-none sm:text-5xl lg:text-6xl">
-            Welcome to UniMarket
+            Welcome to{" "}
+            <span className="text-[rgb(var(--brand-accent))]">Uni</span>
+            <span className="text-[rgb(var(--brand-primary))]">Market</span>
           </h1>
-          <p className="mt-4 max-w-2xl text-base text-white/85 select-none sm:text-lg">
-            Buy, sell, and trade dorm essentials, textbooks, and everyday finds
-            with your campus community.
+          <p className="mt-4 max-w-2xl text-base text-white/90 select-none sm:text-lg">
+            Find textbooks, furniture, tech, and last-minute essentials from
+            students nearby without the usual marketplace noise.
           </p>
 
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-3 text-sm text-white/85">
-            <span className="rounded-full border border-white/20 bg-[#fff6ef]/12 px-4 py-2">
-              Campus-only community
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-3 text-sm text-white/90">
+            <span className="rounded-full border border-white/25 bg-[#fff6ef]/14 px-4 py-2 shadow-[0_8px_20px_rgba(20,8,7,0.18)]">
+              Textbooks
             </span>
-            <span className="rounded-full border border-white/20 bg-[#fff6ef]/12 px-4 py-2">
-              Quick meetups
+            <span className="rounded-full border border-white/25 bg-[#fff6ef]/14 px-4 py-2 shadow-[0_8px_20px_rgba(20,8,7,0.18)]">
+              Furniture
             </span>
-            <span className="rounded-full border border-white/20 bg-[#fff6ef]/12 px-4 py-2">
-              Student-friendly pricing
+            <span className="rounded-full border border-white/25 bg-[#fff6ef]/14 px-4 py-2 shadow-[0_8px_20px_rgba(20,8,7,0.18)]">
+              Electronics
             </span>
           </div>
 
-          <div className="mt-8 flex w-full max-w-2xl items-center overflow-hidden rounded-full border border-[#f3dacd]/20 bg-[#fffaf7] shadow-[0_16px_45px_rgba(25,10,8,0.24)] focus-within:ring-2 focus-within:ring-[#fff1e4]/70">
-            <input
-              className="min-w-0 flex-1 bg-transparent px-5 py-3 text-[#2a1714] outline-none placeholder:text-[#8a736b]"
-              type="text"
-              placeholder="Search textbooks, furniture, electronics..."
-            />
-            <button
-              aria-label="Search"
-              className="m-1 rounded-full bg-[#f0b177] px-5 py-2.5 text-[#2a1714] transition hover:bg-[#e89a54] active:scale-95"
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="#listings"
+              className="flex items-center gap-2 rounded-full bg-[rgb(var(--brand-primary))] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(20,8,7,0.22)] transition hover:brightness-95 active:scale-95"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m1.6-4.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+              Browse listings
+              <span aria-hidden="true" className="text-base leading-none">
+                →
+              </span>
+            </Link>
+            <button
+              type="button"
+              onClick={() => setShowCreate(true)}
+              className="flex items-center gap-2 rounded-full bg-[rgb(var(--brand-accent))] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(232,140,65,0.28)] transition hover:brightness-95 active:scale-95"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
               </svg>
+              Sell an item
             </button>
           </div>
-
-          <button
-            type="button"
-            onClick={() => setShowCreate(true)}
-            className="mt-6 flex items-center gap-2 rounded-full border border-white/30 bg-white/15 px-6 py-3 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/22 active:scale-95"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Post a listing
-          </button>
         </div>
       </section>
 
       {/* ── Listings ──────────────────────────────────────────────────────── */}
-      <section className="w-full bg-[#f6f0ea] px-4 pb-28 pt-20">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-10">
-          <div className="rounded-[2rem] border border-[#eadccf] bg-[#fffaf6] px-5 py-6 shadow-[0_12px_30px_rgba(75,36,28,0.05)] sm:px-8 sm:py-8">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-              <div className="max-w-2xl">
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#b15b46]">
-                  Featured Listings
-                </p>
-                <h2 className="mt-2 text-3xl font-semibold text-[#2a1714]">
-                  Fresh finds from your campus
-                </h2>
-                <p className="mt-3 text-sm leading-6 text-[#745f59] sm:text-base">
-                  Browse the newest listings students have posted nearby, then
-                  sort by what matters most to you.
-                </p>
+      <section id="listings" className="w-full bg-[#f6f0ea] px-2 pb-28 pt-20 sm:px-3">
+        <div className="mx-auto flex w-full max-w-[calc(100vw-1rem)] flex-col gap-10">
+          <div className="rounded-[2rem] border border-[#eadccf] bg-[#fffaf6] px-5 py-6 shadow-[0_12px_30px_rgba(75,36,28,0.05)] sm:px-8 sm:py-7">
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+                <div className="flex-1 sm:max-w-3xl">
+                  <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[rgb(var(--brand-primary))]">
+                    Featured Listings
+                  </p>
+                  <h2 className="mt-2 text-3xl font-semibold text-[#2a1714]">
+                    Latest listings
+                  </h2>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3 xl:justify-end">
+                  <div className="rounded-full bg-[#f1e4dc] px-4 py-2 text-sm font-medium text-[#855246]">
+                    {loadingListings
+                      ? "Checking marketplace…"
+                      : `${listings.length} active listing${listings.length === 1 ? "" : "s"}`}
+                  </div>
+                </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3 sm:justify-end">
-                <div className="rounded-full bg-[#f1e4dc] px-4 py-2 text-sm font-medium text-[#855246]">
-                  {loadingListings
-                    ? "Checking marketplace…"
-                    : `${sortedListings.length} active listing${sortedListings.length === 1 ? "" : "s"}`}
-                </div>
-                <SortDropdown sortBy={sortBy} setSortBy={setSortBy} />
-                <button
-                  type="button"
-                  onClick={() => setShowCreate(true)}
-                  className="flex items-center gap-2 rounded-full bg-[#b15b46] px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-[#9a4c38] active:scale-[0.97]"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                  </svg>
-                  Sell an item
-                </button>
-                <Link
-                  href="/my-listings"
-                  className="rounded-full border border-[#e0cfc6] bg-[#faf5f2] px-5 py-2.5 text-sm font-medium text-[#6d4037] transition hover:bg-[#f1e4dc]"
-                >
-                  My listings
-                </Link>
-              </div>
+              <p className="text-sm leading-6 text-[#745f59] sm:text-base">
+                New posts land here first. Sort what you see, save what you like, and message sellers when something stands out.
+              </p>
             </div>
           </div>
 
@@ -219,20 +204,22 @@ export default function MarketplaceHome() {
             )}
 
             {!loadingListings && listingsError && (
-              <p className="col-span-full mx-auto max-w-xl rounded-2xl border border-rose-200 bg-[#fff5f4] px-5 py-4 text-center text-sm text-rose-700">
+              <p className="col-span-full mx-auto max-w-xl rounded-2xl border border-[rgba(var(--brand-primary),0.18)] bg-[rgba(var(--brand-accent),0.10)] px-5 py-4 text-center text-sm text-[rgb(var(--brand-primary))]">
                 Failed to load listings: {listingsError}
               </p>
             )}
 
-            {!loadingListings && !listingsError && sortedListings.length === 0 && (
+            {!loadingListings && !listingsError && listings.length === 0 && (
               <p className="col-span-full mx-auto max-w-xl rounded-2xl border border-[#eadccf] bg-[#fffaf6] px-5 py-5 text-center text-sm leading-6 text-[#705f5a]">
-                No listings yet — be the first to post one!
+                {hiddenOwnListingsCount > 0
+                  ? "No listings from other sellers yet. Your own items are available in My listings."
+                  : "No listings yet — be the first to post one!"}
               </p>
             )}
 
             {!loadingListings &&
               !listingsError &&
-              sortedListings.map((item) => (
+              listings.map((item) => (
                 <ListingCard
                   key={item.id}
                   id={item.id}

@@ -2,15 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
+import FallbackImage from "@/components/FallbackImage";
+import { DEFAULT_IMAGE_SRC } from "@/lib/imageSources";
+import { addListingToCart } from "@/lib/cart";
 import { useAuthGuard } from "@/lib/useAuthGuard";
 import {
   fetchListing,
   fetchSavedListingIds,
+  getProfileByUserId,
   saveListing,
   unsaveListing,
   type ListingRecord,
+  type UserProfile,
 } from "@/lib/supabaseData";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -40,6 +44,8 @@ export default function ListingDetailPage() {
   const [liked, setLiked] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [sellerProfile, setSellerProfile] = useState<UserProfile | null>(null);
+  const [cartNotice, setCartNotice] = useState<string | null>(null);
 
   useEffect(() => {
     if (!ready) return;
@@ -65,6 +71,9 @@ export default function ListingDetailPage() {
       } else {
         setListing(listingResult.data);
         setLiked(savedIds.includes(id));
+        const profile = await getProfileByUserId(listingResult.data.sellerId);
+        if (!active) return;
+        setSellerProfile(profile);
       }
 
       setCurrentUserId(user?.id ?? null);
@@ -79,10 +88,46 @@ export default function ListingDetailPage() {
     const next = !liked;
     setLiked(next);
     if (next) {
-      await saveListing(id);
+      const error = await saveListing(id);
+      if (error) {
+        setLiked(false);
+      }
     } else {
-      await unsaveListing(id);
+      const error = await unsaveListing(id);
+      if (error) {
+        setLiked(true);
+      }
     }
+  }
+
+  function showPreviousImage() {
+    setActiveImage((current) =>
+      current === 0 ? images.length - 1 : current - 1,
+    );
+  }
+
+  function showNextImage() {
+    setActiveImage((current) =>
+      current === images.length - 1 ? 0 : current + 1,
+    );
+  }
+
+  function handleAddToCart() {
+    if (!listing) return;
+    const next = addListingToCart(listing);
+    const cartItem = next.find((item) => item.id === listing.id);
+    const quantity = cartItem?.quantity ?? 1;
+    setCartNotice(
+      quantity > 1
+        ? `Added again. ${quantity} in your cart.`
+        : "Added to cart.",
+    );
+  }
+
+  function handleBuyNow() {
+    if (!listing) return;
+    addListingToCart(listing);
+    router.push("/cart");
   }
 
   if (!ready || loading) {
@@ -96,10 +141,10 @@ export default function ListingDetailPage() {
   if (error || !listing) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#f6f0ea] px-4">
-        <p className="rounded-2xl border border-rose-200 bg-rose-50 px-6 py-4 text-sm text-rose-700">
+        <p className="rounded-2xl border border-[rgba(var(--brand-primary),0.18)] bg-[rgba(var(--brand-accent),0.12)] px-6 py-4 text-sm text-[rgb(var(--brand-primary))]">
           {error ?? "Listing not found."}
         </p>
-        <Link href="/" className="text-sm font-medium text-[#b15b46] underline underline-offset-2">
+        <Link href="/" className="text-sm font-medium text-[rgb(var(--brand-primary))] underline underline-offset-2">
           Back to marketplace
         </Link>
       </main>
@@ -108,10 +153,24 @@ export default function ListingDetailPage() {
 
   const images = listing.images.length > 0
     ? listing.images
-    : ["/placeholder-avatar-picture.jpg"];
+    : [DEFAULT_IMAGE_SRC];
 
   const isOwner = currentUserId === listing.sellerId;
   const statusStyle = STATUS_STYLES[listing.status] ?? STATUS_STYLES["available"];
+  const sellerDisplayName =
+    sellerProfile?.full_name?.trim() || sellerProfile?.username || "Seller";
+  const sellerInitials = sellerDisplayName
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+  const sellerMemberSince = sellerProfile?.created_at
+    ? new Date(sellerProfile.created_at).toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      })
+    : null;
 
   return (
     <main className="min-h-screen bg-[#f6f0ea] px-4 pb-28 pt-24">
@@ -121,7 +180,7 @@ export default function ListingDetailPage() {
         <button
           type="button"
           onClick={() => router.back()}
-          className="mb-6 flex items-center gap-2 text-sm font-medium text-[#7a5a52] transition hover:text-[#b15b46]"
+          className="mb-6 flex items-center gap-2 text-sm font-medium text-[#7a5a52] transition hover:text-[rgb(var(--brand-primary))]"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
@@ -132,10 +191,10 @@ export default function ListingDetailPage() {
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-12">
 
           {/* ── Images ────────────────────────────────────────────────────── */}
-          <div className="flex flex-col gap-3 lg:sticky lg:top-8 lg:w-[52%]">
+          <div className="flex flex-col gap-4 lg:sticky lg:top-8 lg:w-[52%]">
             {/* Main image */}
             <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[1.75rem] border border-[#eadccf] bg-[#fffaf6] shadow-[0_16px_40px_rgba(63,27,21,0.1)]">
-              <Image
+              <FallbackImage
                 src={images[activeImage]}
                 alt={listing.title}
                 fill
@@ -147,6 +206,31 @@ export default function ListingDetailPage() {
               <span className={`absolute left-4 top-4 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${statusStyle}`}>
                 {listing.status}
               </span>
+
+              {images.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={showPreviousImage}
+                    aria-label="Previous photo"
+                    className="absolute left-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/40 bg-[rgba(42,23,20,0.44)] text-white shadow-[0_10px_24px_rgba(24,10,8,0.18)] backdrop-blur-sm transition hover:bg-[rgba(42,23,20,0.58)] active:scale-95"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={showNextImage}
+                    aria-label="Next photo"
+                    className="absolute right-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/40 bg-[rgba(42,23,20,0.44)] text-white shadow-[0_10px_24px_rgba(24,10,8,0.18)] backdrop-blur-sm transition hover:bg-[rgba(42,23,20,0.58)] active:scale-95"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                    </svg>
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Thumbnails */}
@@ -159,13 +243,59 @@ export default function ListingDetailPage() {
                     onClick={() => setActiveImage(i)}
                     className={`relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border-2 transition ${
                       activeImage === i
-                        ? "border-[#b15b46]"
+                        ? "border-[rgb(var(--brand-accent))]"
                         : "border-[#e0cfc6] hover:border-[#c49080]"
                     }`}
                   >
-                    <Image src={src} alt={`Photo ${i + 1}`} fill className="object-cover" sizes="64px" />
+                    <FallbackImage src={src} alt={`Photo ${i + 1}`} fill className="object-cover" sizes="64px" />
                   </button>
                 ))}
+              </div>
+            )}
+
+            {!isOwner && (
+              <div className="rounded-[1.75rem] border border-[#eadccf] bg-[#fffaf6] px-5 py-5 shadow-[0_12px_30px_rgba(75,36,28,0.06)]">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[rgb(var(--brand-primary))]">
+                  Seller
+                </p>
+                <div className="mt-4 flex items-center gap-4">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[rgba(var(--brand-accent),0.16)] text-lg font-bold text-[rgb(var(--brand-primary))]">
+                    {sellerInitials || "U"}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-lg font-semibold text-[#2a1714]">
+                      {sellerDisplayName}
+                    </p>
+                    {sellerProfile?.full_name && sellerProfile.username && (
+                      <p className="mt-0.5 text-sm text-[#8a736b]">
+                        @{sellerProfile.username}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-4 grid gap-2 text-sm">
+                  <SellerInfoRow label="Campus" value={sellerProfile?.campus} />
+                  <SellerInfoRow label="Major" value={sellerProfile?.major} />
+                  <SellerInfoRow label="Member since" value={sellerMemberSince} />
+                </div>
+
+                <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/messages?sellerId=${listing.sellerId}`)}
+                    className="flex-1 rounded-full bg-[rgb(var(--brand-accent))] py-3 text-sm font-semibold text-white shadow-md transition hover:brightness-95 active:scale-[0.97]"
+                  >
+                    Contact seller
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/users/${listing.sellerId}`)}
+                    className="flex-1 rounded-full border border-[#e0cfc6] bg-[#faf5f2] py-3 text-sm font-medium text-[#6d4037] transition hover:bg-[#f1e4dc] active:scale-[0.97]"
+                  >
+                    View profile
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -184,11 +314,11 @@ export default function ListingDetailPage() {
                 aria-label={liked ? "Remove from saved" : "Save listing"}
                 className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border transition ${
                   liked
-                    ? "border-[#b15b46] bg-[#fdf0eb]"
-                    : "border-[#e0cfc6] bg-[#faf5f2] hover:border-[#b15b46] hover:bg-[#fdf0eb]"
+                    ? "border-[rgb(var(--brand-accent))] bg-[rgba(var(--brand-accent),0.14)]"
+                    : "border-[#e0cfc6] bg-[#faf5f2] hover:border-[rgb(var(--brand-accent))] hover:bg-[rgba(var(--brand-accent),0.14)]"
                 }`}
               >
-                <Image
+                <FallbackImage
                   src={liked ? "/heartfilled.png" : "/heart.png"}
                   alt=""
                   width={20}
@@ -200,7 +330,7 @@ export default function ListingDetailPage() {
 
             {/* Price */}
             <div className="flex items-baseline gap-3">
-              <span className="text-4xl font-bold text-[#b15b46]">
+              <span className="text-4xl font-bold text-[rgb(var(--brand-primary))]">
                 ${listing.price.toFixed(2)}
               </span>
               {listing.isNegotiable && (
@@ -243,47 +373,36 @@ export default function ListingDetailPage() {
               )}
             </p>
 
+            {cartNotice && (
+              <p className="rounded-2xl border border-[rgba(var(--brand-accent),0.24)] bg-[rgba(var(--brand-accent),0.12)] px-4 py-3 text-sm font-medium text-[rgb(var(--brand-primary))]">
+                {cartNotice}
+              </p>
+            )}
+
             {/* CTA */}
             {!isOwner && listing.status === "available" && (
               <div className="flex flex-col gap-3 sm:flex-row">
                 <button
                   type="button"
-                  onClick={() => router.push(`/messages?sellerId=${listing.sellerId}`)}
-                  className="flex-1 rounded-full bg-[#b15b46] py-3.5 text-sm font-semibold text-white shadow-md transition hover:bg-[#9a4c38] active:scale-[0.97]"
+                  onClick={handleAddToCart}
+                  className="flex-1 rounded-full bg-[rgb(var(--brand-accent))] py-3.5 text-sm font-semibold text-white shadow-md transition hover:brightness-95 active:scale-[0.97]"
                 >
-                  Contact seller
+                  Add to Cart
                 </button>
                 <button
                   type="button"
-                  onClick={handleHeart}
-                  className={`flex-1 rounded-full border py-3.5 text-sm font-semibold transition active:scale-[0.97] ${
-                    liked
-                      ? "border-[#b15b46] bg-[#fdf0eb] text-[#b15b46]"
-                      : "border-[#e0cfc6] bg-[#faf5f2] text-[#6d4037] hover:bg-[#f1e4dc]"
-                  }`}
+                  onClick={handleBuyNow}
+                  className="flex-1 rounded-full bg-[rgb(var(--brand-primary))] py-3.5 text-sm font-semibold text-white shadow-md transition hover:brightness-95 active:scale-[0.97]"
                 >
-                  {liked ? "Saved ♥" : "Save listing"}
+                  Buy Now
                 </button>
               </div>
-            )}
-
-            {!isOwner && (
-              <button
-                type="button"
-                onClick={() => router.push(`/users/${listing.sellerId}`)}
-                className="flex w-full items-center justify-center gap-2 rounded-full border border-[#e0cfc6] bg-[#faf5f2] py-3 text-sm font-medium text-[#6d4037] transition hover:bg-[#f1e4dc] active:scale-[0.97]"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                </svg>
-                View seller profile
-              </button>
             )}
 
             {/* Owner actions */}
             {isOwner && (
               <Link
-                href="/my-listings"
+                href="/listings"
                 className="inline-flex items-center gap-2 rounded-full border border-[#e0cfc6] bg-[#faf5f2] px-5 py-3 text-sm font-medium text-[#6d4037] transition hover:bg-[#f1e4dc]"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
@@ -306,6 +425,21 @@ function Chip({ icon, label }: { icon: string; label: string }) {
       <span>{icon}</span>
       {label}
     </span>
+  );
+}
+
+function SellerInfoRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | null | undefined;
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-2xl border border-[#f0e7e0] bg-[#fcfaf7] px-4 py-3">
+      <span className="font-medium text-[#2a1714]">{label}</span>
+      <span className="text-right text-[#53433d]">{value ?? "—"}</span>
+    </div>
   );
 }
 

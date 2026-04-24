@@ -87,7 +87,7 @@ export default function ImageUploader({
         className={[
           "flex h-28 w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed transition-all duration-200",
           dragOver
-            ? "border-[#b15b46] bg-[#fdf0eb]"
+            ? "border-[rgb(var(--brand-accent))] bg-[rgba(var(--brand-accent),0.14)]"
             : "border-[#e0cfc6] bg-[#faf5f2] hover:border-[#c47a5e] hover:bg-[#fdf1ec]",
           disabled || uploading || previews.length >= maxImages
             ? "cursor-not-allowed opacity-50"
@@ -96,7 +96,7 @@ export default function ImageUploader({
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="h-7 w-7 text-[#b15b46]"
+          className="h-7 w-7 text-[rgb(var(--brand-primary))]"
           fill="none"
           viewBox="0 0 24 24"
           strokeWidth={1.5}

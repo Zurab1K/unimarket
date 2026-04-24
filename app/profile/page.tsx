@@ -156,7 +156,7 @@ export default function ProfilePage() {
     <main className="min-h-screen bg-[#f6f0ea] px-4 pb-28 pt-20">
       <div className="mx-auto w-full max-w-5xl space-y-8">
         <section className="rounded-[2rem] border border-[#eadccf] bg-[#fffaf6] px-6 py-8 shadow-[0_12px_30px_rgba(75,36,28,0.05)]">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#b15b46]">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[rgb(var(--brand-primary))]">
             Profile
           </p>
           <h1 className="mt-3 text-3xl font-semibold text-[#2a1714]">Your onboarding details</h1>
@@ -173,7 +173,7 @@ export default function ProfilePage() {
         )}
 
         {error && !loading && (
-          <div className="rounded-[2rem] border border-rose-200 bg-rose-50 px-6 py-8 text-sm text-rose-700">
+          <div className="rounded-[2rem] border border-[rgba(var(--brand-primary),0.18)] bg-[rgba(var(--brand-accent),0.12)] px-6 py-8 text-sm text-[rgb(var(--brand-primary))]">
             {error}
           </div>
         )}
@@ -189,7 +189,7 @@ export default function ProfilePage() {
             <div className="rounded-[2rem] border border-[#eadccf] bg-white p-6 shadow-[0_12px_25px_rgba(75,36,28,0.05)]">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#b15b46]">
+                  <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[rgb(var(--brand-primary))]">
                     Personal information
                   </p>
                   <p className="mt-2 text-sm text-[#745f59]">
@@ -230,14 +230,14 @@ export default function ProfilePage() {
                               value={editValue}
                               onChange={(event) => setEditValue(event.target.value)}
                               placeholder={field.placeholder}
-                              className="w-full rounded-2xl border border-[#d7cdc3] bg-white px-4 py-3 text-sm text-[#2a1714] outline-none transition focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
+                              className="w-full rounded-2xl border border-[#d7cdc3] bg-white px-4 py-3 text-sm text-[#2a1714] outline-none transition focus:border-[rgb(var(--brand-accent))] focus:ring-2 focus:ring-[rgba(var(--brand-accent),0.22)]"
                             />
                             <div className="flex flex-wrap items-center gap-3">
                               <button
                                 type="button"
                                 onClick={handleSaveField}
                                 disabled={saving}
-                                className="rounded-full bg-[#b15b46] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#9a4c38] disabled:cursor-not-allowed disabled:opacity-60"
+                                className="rounded-full bg-[rgb(var(--brand-accent))] px-4 py-2 text-sm font-semibold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"
                               >
                                 {saving ? "Saving…" : "Save"}
                               </button>
@@ -251,7 +251,7 @@ export default function ProfilePage() {
                               </button>
                             </div>
                             {fieldError ? (
-                              <p className="text-sm text-rose-600">{fieldError}</p>
+                              <p className="text-sm text-[rgb(var(--brand-primary))]">{fieldError}</p>
                             ) : null}
                           </div>
                         ) : (
@@ -267,7 +267,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="rounded-[2rem] border border-[#eadccf] bg-white p-6 shadow-[0_12px_25px_rgba(75,36,28,0.05)]">
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#b15b46]">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[rgb(var(--brand-primary))]">
                 Preferences
               </p>
               <dl className="mt-6 space-y-5 text-sm text-[#53433d]">
@@ -306,7 +306,7 @@ export default function ProfilePage() {
             <div className="lg:col-span-2 rounded-[2rem] border border-[#eadccf] bg-white p-6 shadow-[0_12px_25px_rgba(75,36,28,0.05)]">
               <div className="mb-6 flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#b15b46]">
+                  <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[rgb(var(--brand-primary))]">
                     Reviews & ratings
                   </p>
                   <p className="mt-2 text-sm text-[#745f59]">
@@ -337,7 +337,7 @@ export default function ProfilePage() {
                               Math.round(
                                 reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
                               )
-                                ? "#b15b46"
+                                ? "rgb(var(--brand-accent))"
                                 : "#e8dcd3"
                             }
                           >
@@ -363,7 +363,7 @@ export default function ProfilePage() {
                                   xmlns="http://www.w3.org/2000/svg"
                                   className="h-3.5 w-3.5"
                                   viewBox="0 0 24 24"
-                                  fill={star <= review.rating ? "#b15b46" : "#e8dcd3"}
+                                  fill={star <= review.rating ? "rgb(var(--brand-accent))" : "#e8dcd3"}
                                 >
                                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                                 </svg>
@@ -397,7 +397,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="lg:col-span-2 rounded-[2rem] border border-[#eadccf] bg-white p-6 shadow-[0_12px_25px_rgba(75,36,28,0.05)]">
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#b15b46]">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[rgb(var(--brand-primary))]">
                 Account metadata
               </p>
               <dl className="mt-6 grid gap-5 text-sm text-[#53433d] sm:grid-cols-2">

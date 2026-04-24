@@ -76,21 +76,23 @@ export default function ResetPasswordPage() {
 
   const noticeClasses =
     noticeTone === "error"
-      ? "border-red-200 bg-red-50 text-red-700"
+      ? "border-[rgba(var(--brand-primary),0.18)] bg-[rgba(var(--brand-accent),0.12)] text-[rgb(var(--brand-primary))]"
       : "border-amber-200 bg-amber-50 text-amber-800";
 
   return (
-    <main className="relative flex min-h-[100svh] items-center justify-center overflow-hidden bg-gradient-to-b from-white via-red-50 to-red-100 px-4 py-4 sm:py-6">
-      <div className="absolute inset-x-0 top-0 h-56 bg-[radial-gradient(circle_at_top,_rgba(220,38,38,0.12),_transparent_60%)]" />
-      <div className="absolute left-[-6rem] top-20 h-40 w-40 rounded-full bg-red-200/40 blur-3xl" />
-      <div className="absolute bottom-8 right-[-4rem] h-44 w-44 rounded-full bg-red-300/30 blur-3xl" />
+    <main className="relative flex min-h-[100svh] items-center justify-center overflow-hidden bg-[linear-gradient(180deg,rgba(255,250,247,1),rgba(255,241,231,1))] px-4 py-4 sm:py-6">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(232,140,65,0.24),_transparent_34%),radial-gradient(circle_at_bottom_left,_rgba(137,37,37,0.16),_transparent_30%),linear-gradient(135deg,rgba(137,37,37,0.08),transparent_38%,rgba(232,140,65,0.10))]" />
+      <div className="absolute inset-x-0 top-0 h-64 bg-[radial-gradient(circle_at_top,_rgba(232,140,65,0.18),_transparent_62%)]" />
+      <div className="absolute left-[-7rem] top-16 h-56 w-56 rounded-full bg-[rgba(137,37,37,0.14)] blur-3xl" />
+      <div className="absolute right-[-6rem] top-24 h-52 w-52 rounded-full bg-[rgba(232,140,65,0.16)] blur-3xl" />
+      <div className="absolute bottom-6 right-[-5rem] h-56 w-56 rounded-full bg-[rgba(232,140,65,0.14)] blur-3xl" />
 
-      <div className="relative w-full max-w-lg rounded-[1.75rem] border border-red-100 bg-white/90 p-5 shadow-[0_22px_60px_rgba(127,29,29,0.12)] backdrop-blur sm:p-6">
+      <div className="relative w-full max-w-lg rounded-[1.75rem] border border-[rgba(var(--brand-primary),0.18)] bg-white/90 p-5 shadow-[0_22px_60px_rgba(127,29,29,0.12)] backdrop-blur sm:p-6">
         <div className="text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.28em] text-red-500">
+          <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[rgb(var(--brand-primary))]">
             Password Recovery
           </p>
-          <h1 className="mt-3 font-[family:var(--font-geist-sans)] text-4xl font-bold text-black sm:text-5xl">
+          <h1 className="mt-3 text-4xl font-bold text-black sm:text-5xl">
             Reset your password
           </h1>
           <p className="mx-auto mt-3 max-w-md text-sm leading-5 text-gray-600">
@@ -111,7 +113,7 @@ export default function ResetPasswordPage() {
                   type="password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-black outline-none transition focus:border-red-400 focus:ring-4 focus:ring-red-100"
+                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-black outline-none transition focus:border-[rgb(var(--brand-accent))] focus:ring-4 focus:ring-[rgba(var(--brand-accent),0.22)]"
                   placeholder="Enter a new password"
                 />
               </label>
@@ -122,7 +124,7 @@ export default function ResetPasswordPage() {
                   type="password"
                   value={confirmPassword}
                   onChange={(event) => setConfirmPassword(event.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-black outline-none transition focus:border-red-400 focus:ring-4 focus:ring-red-100"
+                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-black outline-none transition focus:border-[rgb(var(--brand-accent))] focus:ring-4 focus:ring-[rgba(var(--brand-accent),0.22)]"
                   placeholder="Retype the new password"
                 />
               </label>
@@ -136,7 +138,7 @@ export default function ResetPasswordPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="mt-1 rounded-xl bg-red-600 px-6 py-2.5 text-base font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300"
+                className="mt-1 rounded-xl bg-[rgb(var(--brand-accent))] px-6 py-2.5 text-base font-semibold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:bg-[rgba(var(--brand-accent),0.45)]"
               >
                 {submitting ? "Updating..." : "Update password"}
               </button>

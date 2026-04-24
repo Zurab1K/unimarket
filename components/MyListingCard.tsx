@@ -1,7 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
+import FallbackImage from "@/components/FallbackImage";
+import { DEFAULT_IMAGE_SRC } from "@/lib/imageSources";
 import type { ListingRecord } from "@/lib/supabaseData";
 import { deleteListing } from "@/lib/supabaseData";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
@@ -27,7 +28,7 @@ export default function MyListingCard({
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
 
-  const thumb = listing.images[0] ?? "/placeholder-avatar-picture.jpg";
+  const thumb = listing.images[0] ?? DEFAULT_IMAGE_SRC;
   const statusStyle =
     STATUS_STYLES[listing.status] ?? STATUS_STYLES["available"];
 
@@ -42,7 +43,7 @@ export default function MyListingCard({
       <div className="group flex gap-4 overflow-hidden rounded-2xl border border-[#eadccf] bg-[#fffaf6] p-4 shadow-[0_6px_20px_rgba(63,27,21,0.06)] transition hover:shadow-[0_10px_28px_rgba(63,27,21,0.1)]">
         {/* Thumbnail */}
         <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border border-[#eadccf]">
-          <Image
+          <FallbackImage
             src={thumb}
             alt={listing.title}
             fill
@@ -75,7 +76,7 @@ export default function MyListingCard({
                 .join(" · ")}
             </p>
           </div>
-          <p className="text-base font-bold text-[#b15b46]">
+          <p className="text-base font-bold text-[rgb(var(--brand-primary))]">
             ${listing.price.toFixed(2)}
           </p>
         </div>
@@ -95,7 +96,7 @@ export default function MyListingCard({
           <button
             type="button"
             onClick={() => setShowDelete(true)}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-rose-200 bg-rose-50 text-rose-600 transition hover:bg-rose-100"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(var(--brand-primary),0.18)] bg-[rgba(var(--brand-accent),0.12)] text-[rgb(var(--brand-primary))] transition hover:bg-[rgba(var(--brand-accent),0.18)]"
             aria-label="Delete listing"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">

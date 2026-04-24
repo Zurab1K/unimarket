@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import FallbackImage from "@/components/FallbackImage";
+import { DEFAULT_IMAGE_SRC } from "@/lib/imageSources";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -40,7 +41,7 @@ function buildAccountSummary(email: string | null, username: unknown): AccountSu
 }
 
 export default function AvatarMenu({
-  imagePath = "/placeholder-avatar-picture.jpg",
+  imagePath = DEFAULT_IMAGE_SRC,
 }: AvatarMenuProps) {
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -90,20 +91,19 @@ export default function AvatarMenu({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/10 px-2 py-1.5 text-left text-white transition hover:bg-white/15"
+        className="flex items-center gap-2 rounded-full border border-white/35 bg-white/28 px-2 py-1 text-left text-[#45251f] shadow-[inset_0_1px_0_rgba(255,255,255,0.28)] transition hover:bg-white/40"
         aria-label="Open account menu"
       >
-        <Image
+        <FallbackImage
           src={imagePath}
           alt="Profile avatar"
-          width={36}
-          height={36}
-          className="rounded-full border border-white/20 object-cover shadow-sm"
+          width={32}
+          height={32}
+          className="rounded-full border border-white/60 object-cover shadow-sm"
         />
 
         <div className="hidden min-w-0 sm:block">
-          <p className="truncate text-sm font-semibold leading-4 text-white">{account.label}</p>
-          <p className="truncate text-xs text-white/70">{account.detail}</p>
+          <p className="truncate text-sm font-semibold leading-4 text-[#2d1712]">{account.label}</p>
         </div>
 
         <svg
@@ -112,7 +112,7 @@ export default function AvatarMenu({
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
-          className={`h-4 w-4 text-white/80 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`h-4 w-4 text-[#6e544d] transition-transform ${open ? "rotate-180" : ""}`}
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
         </svg>
@@ -135,6 +135,16 @@ export default function AvatarMenu({
               className="block w-full rounded-xl px-3 py-2.5 text-left text-sm font-medium text-[#2d1a16] transition hover:bg-[#f8f1eb]"
             >
               Profile
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                router.push("/listings");
+              }}
+              className="block w-full rounded-xl px-3 py-2.5 text-left text-sm font-medium text-[#2d1a16] transition hover:bg-[#f8f1eb]"
+            >
+              My listings
             </button>
             <button
               type="button"

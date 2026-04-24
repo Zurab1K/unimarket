@@ -133,6 +133,16 @@ Root scripts:
 - `npm run chat:build` - build the chatbot backend
 - `npm run chat:start` - start the built chatbot backend
 
+## License
+
+This repository is not open source. It is provided under the custom
+proprietary terms in [LICENSE](./LICENSE).
+
+Use, copying, modification, distribution, deployment, resale, or other
+commercial exploitation requires prior written permission.
+
+For permissions, contact: zurabi.kochiashvili1@gmail.com
+
 ## Typical Local Flow
 
 1. Start the chatbot backend.
