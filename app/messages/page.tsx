@@ -186,7 +186,7 @@ function MessagesPageContent() {
     return () => { supabase.removeChannel(channel); };
   }, [currentUserId]);
 
-  // Typing presence channel per conversation
+  // Typing broadcast channel per conversation
   useEffect(() => {
     if (!currentUserId || !selectedUserId) {
       setIsOtherTyping(false);
@@ -194,22 +194,25 @@ function MessagesPageContent() {
     }
 
     const channelId = [currentUserId, selectedUserId].sort().join("-");
-    const channel = supabase.channel(`typing:${channelId}`, {
-      config: { presence: { key: currentUserId } },
-    });
+    console.log("[typing] subscribing to channel:", `typing:${channelId}`);
+    const channel = supabase.channel(`typing:${channelId}`);
 
     channel
-      .on("presence", { event: "sync" }, () => {
-        const state = channel.presenceState<{ typing: boolean }>();
-        const otherPresences = state[selectedUserId] ?? [];
-        setIsOtherTyping(otherPresences.some((p) => p.typing));
+      .on("broadcast", { event: "typing" }, ({ payload }) => {
+        console.log("[typing] broadcast received:", payload);
+        if (payload.userId === selectedUserId) {
+          console.log("[typing] setting isOtherTyping:", payload.isTyping);
+          setIsOtherTyping(payload.isTyping);
+        }
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log("[typing] channel status:", status);
+      });
 
     typingChannelRef.current = channel;
 
     return () => {
-      channel.untrack();
+      console.log("[typing] removing channel:", `typing:${channelId}`);
       supabase.removeChannel(channel);
       setIsOtherTyping(false);
       typingChannelRef.current = null;
@@ -265,13 +268,26 @@ function MessagesPageContent() {
   function handleInputChange(value: string) {
     setMessageInput(value);
     if (typingChannelRef.current && currentUserId) {
-      typingChannelRef.current.track({ typing: value.length > 0 });
+      const isTyping = value.length > 0;
+      console.log("[typing] broadcasting isTyping:", isTyping, "channel:", typingChannelRef.current);
+      typingChannelRef.current.send({
+        type: "broadcast",
+        event: "typing",
+        payload: { userId: currentUserId, isTyping },
+      });
       if (typingDebounceRef.current) clearTimeout(typingDebounceRef.current);
-      if (value.length > 0) {
+      if (isTyping) {
         typingDebounceRef.current = setTimeout(() => {
-          typingChannelRef.current?.track({ typing: false });
+          console.log("[typing] debounce: clearing isTyping");
+          typingChannelRef.current?.send({
+            type: "broadcast",
+            event: "typing",
+            payload: { userId: currentUserId, isTyping: false },
+          });
         }, 3000);
       }
+    } else {
+      console.log("[typing] no channel or user — channel:", typingChannelRef.current, "userId:", currentUserId);
     }
   }
 
@@ -306,7 +322,7 @@ function MessagesPageContent() {
       setMessages((prev) => [...prev, newMsg]);
       setMessageInput("");
       setPendingAttachment(null);
-      if (typingChannelRef.current) typingChannelRef.current.track({ typing: false });
+      if (typingChannelRef.current) typingChannelRef.current.send({ type: "broadcast", event: "typing", payload: { userId: currentUserId, isTyping: false } });
       const { data: convData } = await getConversations(currentUserId);
       setConversations(convData);
     }
@@ -583,7 +599,18 @@ function ChatPanel({
           <div>
             <p className="font-semibold text-[#2a1714]">{conversation.participantUsername}</p>
             {isOtherTyping ? (
-              <p className="text-xs text-[rgb(var(--brand-accent))] animate-pulse">typing…</p>
+              <span className="flex items-center gap-1">
+                <span className="text-xs font-medium text-[rgb(var(--brand-primary))]">typing</span>
+                <span className="flex items-end gap-[3px] pb-[1px]">
+                  {[0, 150, 300].map((delay) => (
+                    <span
+                      key={delay}
+                      className="h-1.5 w-1.5 rounded-full bg-[rgb(var(--brand-primary))] animate-bounce"
+                      style={{ animationDelay: `${delay}ms` }}
+                    />
+                  ))}
+                </span>
+              </span>
             ) : (
               <p className="text-xs text-[#8a736b]">Active</p>
             )}

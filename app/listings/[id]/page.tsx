@@ -72,7 +72,6 @@ export default function ListingDetailPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [sellerProfile, setSellerProfile] = useState<UserProfile | null>(null);
   const [cartNotice, setCartNotice] = useState<string | null>(null);
-  const [buyLoading, setBuyLoading] = useState(false);
 
   // Transaction state
   const [transaction, setTransaction] = useState<Transaction | null>(null);
@@ -182,30 +181,12 @@ export default function ListingDetailPage() {
     );
   }
 
-  async function handleBuyNow(customPriceCents?: number) {
-    if (!listing || !currentUserId) return;
-    setBuyLoading(true);
-    try {
-      const res = await fetch("/api/checkout/create-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          listingId: listing.id,
-          title: listing.title,
-          priceCents: customPriceCents ?? Math.round(listing.price * 100),
-          sellerId: listing.sellerId,
-          buyerId: currentUserId,
-        }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        setBuyLoading(false);
-      }
-    } catch {
-      setBuyLoading(false);
-    }
+  function handleBuyNow(customPriceCents?: number) {
+    if (!listing) return;
+    const url = customPriceCents != null
+      ? `/checkout/${listing.id}?price=${customPriceCents}`
+      : `/checkout/${listing.id}`;
+    router.push(url);
   }
 
   async function refreshAll() {
@@ -619,10 +600,9 @@ export default function ListingDetailPage() {
                     <button
                       type="button"
                       onClick={() => handleBuyNow(Math.round(acceptedOffer.amount * 100))}
-                      disabled={buyLoading}
-                      className="w-full rounded-full bg-blue-600 py-3.5 text-sm font-semibold text-white shadow-md transition hover:brightness-95 active:scale-[0.97] disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="w-full rounded-full bg-blue-600 py-3.5 text-sm font-semibold text-white shadow-md transition hover:brightness-95 active:scale-[0.97]"
                     >
-                      {buyLoading ? "Redirecting…" : `Complete Purchase — $${acceptedOffer.amount.toFixed(2)}`}
+                      {`Complete Purchase — $${acceptedOffer.amount.toFixed(2)}`}
                     </button>
                   );
                 }
@@ -646,10 +626,9 @@ export default function ListingDetailPage() {
                     <button
                       type="button"
                       onClick={() => handleBuyNow()}
-                      disabled={buyLoading}
-                      className="flex-1 rounded-full bg-[rgb(var(--brand-primary))] py-3.5 text-sm font-semibold text-white shadow-md transition hover:brightness-95 active:scale-[0.97] disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="flex-1 rounded-full bg-[rgb(var(--brand-primary))] py-3.5 text-sm font-semibold text-white shadow-md transition hover:brightness-95 active:scale-[0.97]"
                     >
-                      {buyLoading ? "Redirecting…" : "Buy Now"}
+                      Buy Now
                     </button>
                   </div>
 

@@ -222,6 +222,7 @@ export default function ListingFormModal({
           <div className="flex flex-wrap items-center gap-4">
             {/* Negotiable toggle */}
             <label className="flex cursor-pointer items-center gap-2.5 select-none">
+              <span className="text-sm text-[#4a2e27]">Price is negotiable</span>
               <button
                 type="button"
                 role="switch"
@@ -242,7 +243,6 @@ export default function ListingFormModal({
                   ].join(" ")}
                 />
               </button>
-              <span className="text-sm text-[#4a2e27]">Price is negotiable</span>
             </label>
 
             {/* Status (edit mode only) */}
