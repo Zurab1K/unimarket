@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { useAuthGuard } from "@/lib/useAuthGuard";
 
 type ChatMessage = {
@@ -29,9 +29,18 @@ export default function Chat() {
   const [status, setStatus] = useState<"idle" | "sending">("idle");
   const [error, setError] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
+  const [lastPrompt, setLastPrompt] = useState<string | null>(null);
+  const [lastIntent, setLastIntent] = useState<ChatIntent>("general");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, status]);
 
   const sendMessage = async (prompt: string, intent: ChatIntent = "general") => {
     setMessages((prev) => [...prev, { role: "user", content: prompt }]);
+    setLastPrompt(prompt);
+    setLastIntent(intent);
     setStatus("sending");
     setError(null);
     setWarning(null);
@@ -138,6 +147,14 @@ export default function Chat() {
                 </div>
               );
             })}
+            {status === "sending" && (
+              <div className="flex justify-start">
+                <div className="rounded-2xl border border-[rgba(var(--brand-primary),0.18)] bg-[rgba(var(--brand-accent),0.12)] px-4 py-3 text-sm text-[rgb(var(--brand-primary))] shadow-sm">
+                  UniMarket AI is thinking...
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
           </div>
 
           {error && (
@@ -147,6 +164,16 @@ export default function Chat() {
           )}
           {warning && !error && (
             <p className="mt-3 text-sm text-[#8a736b]">Fallback note: {warning}</p>
+          )}
+          {error && lastPrompt && (
+            <button
+              type="button"
+              onClick={() => sendMessage(lastPrompt, lastIntent)}
+              disabled={status === "sending"}
+              className="mt-2 rounded-full border border-[#e0cfc6] bg-[#faf5f2] px-3 py-1.5 text-xs font-semibold text-[#6d4037] transition hover:bg-[#f1e4dc] disabled:opacity-60"
+            >
+              Retry last message
+            </button>
           )}
 
           <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-3 sm:flex-row">

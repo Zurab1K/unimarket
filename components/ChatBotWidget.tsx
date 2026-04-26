@@ -100,7 +100,7 @@ export default function ChatBotWidget() {
       {/* Floating toggle button */}
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full border border-[rgb(var(--brand-accent))] bg-[rgb(var(--brand-accent))] text-white shadow-[0_18px_40px_rgba(var(--brand-accent),0.28)] transition hover:brightness-95 active:scale-95"
+        className="fixed bottom-6 right-6 z-[2500] flex h-14 w-14 items-center justify-center rounded-full border border-[rgb(var(--brand-accent))] bg-[rgb(var(--brand-accent))] text-white shadow-[0_18px_40px_rgba(var(--brand-accent),0.28)] transition hover:brightness-95 active:scale-95"
         aria-label={open ? "Close chat" : "Open chat"}
       >
         {open ? (
@@ -118,7 +118,7 @@ export default function ChatBotWidget() {
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-24 right-6 z-50 flex h-[28rem] w-[22rem] flex-col rounded-2xl border border-[rgba(var(--brand-primary),0.18)] bg-white shadow-[0_24px_60px_rgba(127,29,29,0.16)]">
+        <div className="fixed bottom-24 right-6 z-[2500] flex h-[28rem] w-[22rem] flex-col rounded-2xl border border-[rgba(var(--brand-primary),0.18)] bg-white shadow-[0_24px_60px_rgba(127,29,29,0.16)]">
           {/* Header */}
           <div className="flex items-center justify-between rounded-t-2xl bg-[rgb(var(--brand-accent))] px-4 py-3 text-white">
             <div>

@@ -14,9 +14,9 @@ import LocationMap from "@/components/LocationMap";
 import {
   CAMPUS_ZONES,
   DEFAULT_MAP_CENTER,
-  formatLocationText,
-  getZoneByLabel,
-  parseLocationText,
+  parseMeetupPoints,
+  serializeMeetupPoints,
+  type MeetupPoint,
 } from "@/lib/location";
 
 interface ListingFormModalProps {
@@ -63,11 +63,27 @@ export default function ListingFormModal({
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const parsedLocation = parseLocationText(form.location);
+  const initialMeetupPoints = parseMeetupPoints(listing?.location ?? "");
+  const zoneIdSet = new Set(CAMPUS_ZONES.map((zone) => zone.id));
+  const [customMeetupPoints, setCustomMeetupPoints] = useState<MeetupPoint[]>(
+    initialMeetupPoints.filter((point) => point.isCustom || !zoneIdSet.has(point.id)),
+  );
+  const [selectedPointIds, setSelectedPointIds] = useState<string[]>(
+    initialMeetupPoints.map((point) => point.id),
+  );
   const [selectedPoint, setSelectedPoint] = useState<[number, number] | null>(
-    parsedLocation.lat !== null && parsedLocation.lng !== null
-      ? [parsedLocation.lat, parsedLocation.lng]
+    initialMeetupPoints[0]
+      ? [initialMeetupPoints[0].lat, initialMeetupPoints[0].lng]
       : null,
+  );
+  const [customPointName, setCustomPointName] = useState("");
+  const [pendingCustomCoords, setPendingCustomCoords] = useState<[number, number] | null>(null);
+  const allMeetupMarkers: MeetupPoint[] = [
+    ...CAMPUS_ZONES,
+    ...customMeetupPoints,
+  ];
+  const selectedMeetupPoints = allMeetupMarkers.filter((point) =>
+    selectedPointIds.includes(point.id),
   );
 
   function handleOverlayClick(e: React.MouseEvent<HTMLDivElement>) {
@@ -98,13 +114,21 @@ export default function ListingFormModal({
       return;
     }
 
+    const payload: ListingInput = {
+      ...form,
+      location:
+        selectedMeetupPoints.length > 0
+          ? serializeMeetupPoints(selectedMeetupPoints)
+          : form.location,
+    };
+
     setSaving(true);
     setError(null);
 
     const result =
       isEdit && listing
-        ? await updateListing(listing.id, form)
-        : await createListing(form);
+        ? await updateListing(listing.id, payload)
+        : await createListing(payload);
 
     setSaving(false);
 
@@ -116,23 +140,66 @@ export default function ListingFormModal({
     if (result.data) onSaved(result.data);
   }
 
-  function handleZoneSelect(label: string) {
-    const zone = getZoneByLabel(label);
+  function handleZoneToggle(zoneId: string) {
+    const zone = CAMPUS_ZONES.find((item) => item.id === zoneId);
     if (!zone) return;
-    setSelectedPoint([zone.lat, zone.lng]);
-    setForm((f) => ({
-      ...f,
-      location: formatLocationText(zone.label, zone.lat, zone.lng),
-    }));
+    setSelectedPointIds((current) => {
+      if (current.includes(zone.id)) {
+        const next = current.filter((id) => id !== zone.id);
+        const first = allMeetupMarkers.find((point) => next.includes(point.id));
+        setSelectedPoint(first ? [first.lat, first.lng] : null);
+        return next;
+      }
+      setSelectedPoint([zone.lat, zone.lng]);
+      return [...current, zone.id];
+    });
+  }
+
+  function handleMarkerToggle(markerId: string) {
+    const marker = allMeetupMarkers.find((point) => point.id === markerId);
+    if (!marker) return;
+    setSelectedPointIds((current) => {
+      if (current.includes(markerId)) {
+        const next = current.filter((id) => id !== markerId);
+        const first = allMeetupMarkers.find((point) => next.includes(point.id));
+        setSelectedPoint(first ? [first.lat, first.lng] : null);
+        return next;
+      }
+      setSelectedPoint([marker.lat, marker.lng]);
+      return [...current, markerId];
+    });
   }
 
   function handleMapPick(lat: number, lng: number) {
-    const fallbackLabel = parsedLocation.label || "Campus meetup point";
     setSelectedPoint([lat, lng]);
-    setForm((f) => ({
-      ...f,
-      location: formatLocationText(fallbackLabel || "Campus meetup point", lat, lng),
-    }));
+    setPendingCustomCoords([lat, lng]);
+  }
+
+  function addCustomPoint() {
+    if (!pendingCustomCoords || !customPointName.trim()) return;
+    const id = `custom-${Date.now()}`;
+    setCustomMeetupPoints((current) => [
+      ...current,
+      {
+        id,
+        label: customPointName.trim(),
+        lat: pendingCustomCoords[0],
+        lng: pendingCustomCoords[1],
+        isCustom: true,
+      },
+    ]);
+    setSelectedPointIds((current) => [...current, id]);
+    setCustomPointName("");
+    setPendingCustomCoords(null);
+  }
+
+  function removeMeetupPoint(id: string) {
+    if (zoneIdSet.has(id)) {
+      setSelectedPointIds((current) => current.filter((pointId) => pointId !== id));
+      return;
+    }
+    setCustomMeetupPoints((current) => current.filter((point) => point.id !== id));
+    setSelectedPointIds((current) => current.filter((pointId) => pointId !== id));
   }
 
   return (
@@ -242,18 +309,9 @@ export default function ListingFormModal({
             <Field label="Location" className="flex-1">
               <input
                 type="text"
-                value={form.location}
-                onChange={(e) => {
-                  const next = e.target.value;
-                  const parsed = parseLocationText(next);
-                  setSelectedPoint(
-                    parsed.lat !== null && parsed.lng !== null
-                      ? [parsed.lat, parsed.lng]
-                      : null,
-                  );
-                  setForm((f) => ({ ...f, location: next }));
-                }}
-                placeholder="e.g. North campus"
+                value={selectedMeetupPoints.map((point) => point.label).join(", ")}
+                readOnly
+                placeholder="Choose one or more meetup points below"
                 disabled={saving}
                 className="input"
               />
@@ -263,15 +321,19 @@ export default function ListingFormModal({
           <Field label="Meetup map">
             <div className="space-y-3">
               <p className="text-xs text-[#8a736b]">
-                Pick a campus zone or click directly on the map to set a meetup point.
+                Pick one or more campus zones, or click the map to add a custom meetup point.
               </p>
               <div className="flex flex-wrap gap-2">
                 {CAMPUS_ZONES.map((zone) => (
                   <button
                     key={zone.id}
                     type="button"
-                    onClick={() => handleZoneSelect(zone.label)}
-                    className="rounded-full border border-[#e0cfc6] bg-[#faf5f2] px-3 py-1.5 text-xs font-semibold text-[#6d4037] transition hover:bg-[#f1e4dc]"
+                    onClick={() => handleZoneToggle(zone.id)}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                      selectedPointIds.includes(zone.id)
+                        ? "border-[rgb(var(--brand-accent))] bg-[rgba(var(--brand-accent),0.14)] text-[#5d3127]"
+                        : "border-[#e0cfc6] bg-[#faf5f2] text-[#6d4037] hover:bg-[#f1e4dc]"
+                    }`}
                   >
                     {zone.label}
                   </button>
@@ -279,14 +341,53 @@ export default function ListingFormModal({
               </div>
               <LocationMap
                 center={
-                  selectedPoint ??
-                  (parsedLocation.lat !== null && parsedLocation.lng !== null
-                    ? [parsedLocation.lat, parsedLocation.lng]
-                    : DEFAULT_MAP_CENTER)
+                  selectedPoint ?? DEFAULT_MAP_CENTER
                 }
                 marker={selectedPoint}
+                markers={allMeetupMarkers}
+                selectedMarkerIds={selectedPointIds}
+                onMarkerSelect={handleMarkerToggle}
                 onPick={handleMapPick}
               />
+              <div className="flex flex-col gap-2 rounded-xl border border-[#e0cfc6] bg-[#faf5f2] p-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8a736b]">
+                  Add custom meetup point
+                </p>
+                <p className="text-xs text-[#8a736b]">
+                  Click on the map, then name that custom point.
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={customPointName}
+                    onChange={(event) => setCustomPointName(event.target.value)}
+                    placeholder="e.g. Union bus stop entrance"
+                    className="input"
+                  />
+                  <button
+                    type="button"
+                    onClick={addCustomPoint}
+                    disabled={!pendingCustomCoords || !customPointName.trim()}
+                    className="rounded-full bg-[rgb(var(--brand-accent))] px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
+                  >
+                    Add point
+                  </button>
+                </div>
+              </div>
+              {selectedMeetupPoints.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {selectedMeetupPoints.map((point) => (
+                    <button
+                      key={point.id}
+                      type="button"
+                      onClick={() => removeMeetupPoint(point.id)}
+                      className="rounded-full border border-[#e0cfc6] bg-white px-3 py-1.5 text-xs font-semibold text-[#6d4037] transition hover:bg-[#f1e4dc]"
+                    >
+                      {point.label} ×
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </Field>
 

@@ -18,7 +18,7 @@ import {
 } from "@/lib/supabaseData";
 import { supabase } from "@/lib/supabaseClient";
 import LocationMap from "@/components/LocationMap";
-import { DEFAULT_MAP_CENTER, parseLocationText } from "@/lib/location";
+import { DEFAULT_MAP_CENTER, parseMeetupPoints } from "@/lib/location";
 
 const CONDITION_LABELS: Record<string, string> = {
   new: "New",
@@ -173,10 +173,10 @@ export default function ListingDetailPage() {
         year: "numeric",
       })
     : null;
-  const parsedLocation = parseLocationText(listing.location);
+  const meetupPoints = parseMeetupPoints(listing.location);
   const meetupPoint =
-    parsedLocation.lat !== null && parsedLocation.lng !== null
-      ? ([parsedLocation.lat, parsedLocation.lng] as [number, number])
+    meetupPoints.length > 0
+      ? ([meetupPoints[0].lat, meetupPoints[0].lng] as [number, number])
       : null;
 
   return (
@@ -356,7 +356,7 @@ export default function ListingDetailPage() {
                 <Chip icon="✨" label={CONDITION_LABELS[listing.condition] ?? listing.condition} />
               )}
               {listing.location && (
-                <Chip icon="📍" label={listing.location} />
+                <Chip icon="📍" label={meetupPoints[0]?.label || "Campus meetup"} />
               )}
             </div>
 
@@ -376,12 +376,17 @@ export default function ListingDetailPage() {
               <p className="mb-1.5 text-xs font-semibold uppercase tracking-widest text-[#a06050]">
                 Meetup location
               </p>
+              <p className="mb-2 text-xs font-semibold text-[#8a736b]">
+                Meetup zone: {meetupPoints.map((point) => point.label).join(", ") || "Campus meetup point"}
+              </p>
               <p className="mb-3 text-sm text-[#4a2e27]">
-                {parsedLocation.label || listing.location || "Campus meetup point"}
+                {meetupPoints.map((point) => point.label).join(", ") || "Campus meetup point"}
               </p>
               <LocationMap
                 center={meetupPoint ?? DEFAULT_MAP_CENTER}
                 marker={meetupPoint}
+                markers={meetupPoints}
+                selectedMarkerIds={meetupPoints.map((point) => point.id)}
                 readOnly
               />
             </div>

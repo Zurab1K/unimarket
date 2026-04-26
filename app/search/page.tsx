@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthGuard } from "@/lib/useAuthGuard";
 import { fetchListings, fetchSavedListingIds, type ListingRecord } from "@/lib/supabaseData";
 import { LISTING_CATEGORIES, LISTING_CONDITIONS } from "@/lib/listingOptions";
-import { CAMPUS_ZONES, DEFAULT_MAP_CENTER, parseLocationText } from "@/lib/location";
+import { CAMPUS_ZONES, DEFAULT_MAP_CENTER, parseMeetupPoints } from "@/lib/location";
 import LocationMap from "@/components/LocationMap";
 
 type ListingCardViewModel = {
@@ -22,6 +22,7 @@ type ListingCardViewModel = {
   isNegotiable: boolean;
   searchText: string;
   meetupZone: string;
+  meetupZones: string[];
   lat: number | null;
   lng: number | null;
 };
@@ -45,8 +46,9 @@ function formatRelativeAge(createdAt: string) {
 }
 
 function toViewModel(listing: ListingRecord): ListingCardViewModel {
-  const parsedLocation = parseLocationText(listing.location);
-  const pickupLocation = parsedLocation.label || listing.location?.trim() || "Campus meetup";
+  const meetupPoints = parseMeetupPoints(listing.location);
+  const pickupLocation =
+    meetupPoints[0]?.label || listing.location?.trim() || "Campus meetup";
   const parts = [pickupLocation, formatRelativeAge(listing.createdAt)].filter(Boolean);
 
   return {
@@ -72,8 +74,9 @@ function toViewModel(listing: ListingRecord): ListingCardViewModel {
       .join(" ")
       .toLowerCase(),
     meetupZone: pickupLocation,
-    lat: parsedLocation.lat,
-    lng: parsedLocation.lng,
+    meetupZones: meetupPoints.map((point) => point.label),
+    lat: meetupPoints[0]?.lat ?? null,
+    lng: meetupPoints[0]?.lng ?? null,
   };
 }
 
@@ -170,7 +173,8 @@ function SearchPageContent() {
         selectedConditions.length === 0 || selectedConditions.includes(listing.condition);
       const matchesNegotiable = !negotiableOnly || listing.isNegotiable;
       const matchesZone =
-        selectedZones.length === 0 || selectedZones.includes(listing.meetupZone);
+        selectedZones.length === 0 ||
+        listing.meetupZones.some((zone) => selectedZones.includes(zone));
 
       return (
         matchesSearch &&
@@ -253,6 +257,36 @@ function SearchPageContent() {
                   : `${filteredListings.length} result${filteredListings.length === 1 ? "" : "s"}`}
               </div>
               <SortDropdown sortBy={sortBy} setSortBy={setSortBy} />
+            </div>
+          </div>
+          <div className="mt-5">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#8a736b]">
+              Meetup zones
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {CAMPUS_ZONES.map((zone) => {
+                const active = selectedZones.includes(zone.label);
+                return (
+                  <button
+                    key={zone.id}
+                    type="button"
+                    onClick={() =>
+                      setSelectedZones((current) =>
+                        current.includes(zone.label)
+                          ? current.filter((item) => item !== zone.label)
+                          : [...current, zone.label],
+                      )
+                    }
+                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                      active
+                        ? "border-[rgb(var(--brand-accent))] bg-[rgba(var(--brand-accent),0.12)] text-[#5d3127]"
+                        : "border-[#e0cfc6] bg-[#faf5f2] text-[#6d4037] hover:bg-[#f1e4dc]"
+                    }`}
+                  >
+                    {zone.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -437,13 +471,27 @@ function SearchPageContent() {
               </p>
               <LocationMap
                 center={DEFAULT_MAP_CENTER}
+                markers={CAMPUS_ZONES}
+                selectedMarkerIds={CAMPUS_ZONES.filter((z) => selectedZones.includes(z.label)).map(
+                  (z) => z.id,
+                )}
+                onMarkerSelect={(zoneId) => {
+                  const zone = CAMPUS_ZONES.find((item) => item.id === zoneId);
+                  if (!zone) return;
+                  setSelectedZones((current) =>
+                    current.includes(zone.label)
+                      ? current.filter((item) => item !== zone.label)
+                      : [...current, zone.label],
+                  );
+                }}
                 marker={
                   highlightedMapListingId
                     ? (() => {
                         const selected = filteredListings.find(
                           (listing) => listing.id === highlightedMapListingId,
                         );
-                        return selected?.lat !== null && selected?.lng !== null
+                        return typeof selected?.lat === "number" &&
+                          typeof selected?.lng === "number"
                           ? [selected.lat, selected.lng]
                           : null;
                       })()
@@ -451,6 +499,31 @@ function SearchPageContent() {
                 }
                 readOnly
               />
+              <div className="mt-3 flex flex-wrap gap-2">
+                {CAMPUS_ZONES.map((zone) => {
+                  const active = selectedZones.includes(zone.label);
+                  return (
+                    <button
+                      key={zone.id}
+                      type="button"
+                      onClick={() =>
+                        setSelectedZones((current) =>
+                          current.includes(zone.label)
+                            ? current.filter((item) => item !== zone.label)
+                            : [...current, zone.label],
+                        )
+                      }
+                      className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold transition ${
+                        active
+                          ? "border-[rgb(var(--brand-accent))] bg-[rgba(var(--brand-accent),0.14)] text-[#5d3127]"
+                          : "border-[#e0cfc6] bg-[#faf5f2] text-[#6d4037] hover:bg-[#f1e4dc]"
+                      }`}
+                    >
+                      {zone.label}
+                    </button>
+                  );
+                })}
+              </div>
               <p className="mt-2 text-xs text-[#8a736b]">
                 Tip: use Meetup zone filters to narrow nearby listings.
               </p>

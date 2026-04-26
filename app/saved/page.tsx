@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { type ListingRecord } from "@/lib/supabaseData";
 import ListingCard from "@/components/ListingCard";
 import Link from "next/link";
+import { getLocationDisplayLabel } from "@/lib/location";
 
 type SavedListing = ListingRecord & { savedAt: string };
 type SavedListingEmbed = {
@@ -202,7 +203,7 @@ export default function SavedPage() {
                 id={item.id}
                 title={item.title}
                 location={
-                  [item.location, item.category].filter(Boolean).join(" • ")
+                  [getLocationDisplayLabel(item.location), item.category].filter(Boolean).join(" • ")
                 }
                 price={`$${item.price}`}
                 image={item.images[0] ?? DEFAULT_IMAGE_SRC}

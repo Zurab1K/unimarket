@@ -6,7 +6,12 @@ import FallbackImage from "@/components/FallbackImage";
 import { readCart, removeCartItem, type CartItem } from "@/lib/cart";
 import { DEFAULT_IMAGE_SRC } from "@/lib/imageSources";
 import LocationMap from "@/components/LocationMap";
-import { DEFAULT_MAP_CENTER, formatLocationText, parseLocationText } from "@/lib/location";
+import {
+  DEFAULT_MAP_CENTER,
+  formatLocationText,
+  getLocationDisplayLabel,
+  parseLocationText,
+} from "@/lib/location";
 
 export default function CartPage() {
   const [items, setItems] = useState<CartItem[]>([]);
@@ -102,7 +107,7 @@ export default function CartPage() {
                       {item.title}
                     </p>
                     <p className="mt-1 text-sm text-[#745f59]">
-                      {item.location ?? "Campus meetup"}
+                      {getLocationDisplayLabel(item.location)}
                     </p>
                     <p className="mt-3 text-base font-semibold text-[rgb(var(--brand-primary))]">
                       {formatCurrency(item.price)}
