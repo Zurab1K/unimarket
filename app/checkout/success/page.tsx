@@ -3,12 +3,15 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { removeCartItem } from "@/lib/cart";
+import { upsertDemoTransaction } from "@/lib/demoTransactions";
 
 type OrderInfo = {
   id?: number;
   listingId?: string;
   amountCents: number;
   listingTitle?: string;
+  sellerId?: string;
 };
 
 function CheckoutSuccessContent() {
@@ -29,6 +32,16 @@ function CheckoutSuccessContent() {
       .then((data) => {
         if (data.paid) {
           setOrder(data.order);
+          const listingId = Number(data.order?.listingId);
+          if (listingId) {
+            removeCartItem(listingId);
+            upsertDemoTransaction({
+              listingId,
+              listingTitle: data.order?.listingTitle ?? "Demo order",
+              amountCents: data.order?.amountCents ?? 0,
+              sellerId: data.order?.sellerId ?? null,
+            });
+          }
           setStatus("success");
         } else {
           setStatus("error");
@@ -52,7 +65,7 @@ function CheckoutSuccessContent() {
           <p className="text-4xl">⚠️</p>
           <h1 className="mt-4 text-xl font-bold text-[#2a1714]">Something went wrong</h1>
           <p className="mt-2 text-sm text-[#8a736b]">
-            We couldn&apos;t confirm your payment. If you were charged, please contact support.
+            We couldn&apos;t confirm this demo order. No payment was collected.
           </p>
           <Link
             href="/"
@@ -74,9 +87,9 @@ function CheckoutSuccessContent() {
           </svg>
         </div>
 
-        <h1 className="mt-5 text-2xl font-bold text-[#2a1714]">Order confirmed!</h1>
+        <h1 className="mt-5 text-2xl font-bold text-[#2a1714]">Demo order confirmed!</h1>
         <p className="mt-2 text-sm text-[#8a736b]">
-          Your payment was successful. The seller will be in touch soon.
+          No card was charged. This simulates the purchase flow for the product demo.
         </p>
 
         {order && (
@@ -88,7 +101,7 @@ function CheckoutSuccessContent() {
               </div>
             )}
             <div className="mt-2 flex items-center justify-between text-sm">
-              <span className="text-[#745f59]">Amount paid</span>
+              <span className="text-[#745f59]">Demo total</span>
               <span className="font-semibold text-[#2a1714]">
                 ${(order.amountCents / 100).toFixed(2)}
               </span>

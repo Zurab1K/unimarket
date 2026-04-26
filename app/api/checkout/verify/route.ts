@@ -1,15 +1,55 @@
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
-function getStripe() {
-  const stripeSecretKey = process.env.STRIPE_SECRET_KEY?.trim();
+type DemoCheckoutSession = {
+  listingId: number;
+  title: string;
+  priceCents: number;
+  sellerId: string;
+  buyerId: string;
+};
 
-  if (!stripeSecretKey) {
-    throw new Error("Stripe is not configured on this deployment.");
+function parseDemoSessionId(sessionId: string): DemoCheckoutSession | null {
+  if (!sessionId.startsWith("demo_")) return null;
+
+  try {
+    const raw = Buffer.from(sessionId.slice(5), "base64url").toString("utf8");
+    const session = JSON.parse(raw) as Partial<DemoCheckoutSession>;
+
+    if (
+      !session.listingId ||
+      !session.title ||
+      !session.priceCents ||
+      !session.sellerId ||
+      !session.buyerId
+    ) {
+      return null;
+    }
+
+    return {
+      listingId: Number(session.listingId),
+      title: String(session.title),
+      priceCents: Number(session.priceCents),
+      sellerId: String(session.sellerId),
+      buyerId: String(session.buyerId),
+    };
+  } catch {
+    return null;
   }
+}
 
-  return new Stripe(stripeSecretKey);
+function createOrderResponse(session: DemoCheckoutSession, orderId?: number) {
+  return {
+    paid: true,
+    demo: true,
+    order: {
+      id: orderId,
+      listingId: session.listingId,
+      amountCents: session.priceCents,
+      listingTitle: session.title,
+      sellerId: session.sellerId,
+    },
+  };
 }
 
 export async function GET(request: NextRequest) {
@@ -21,15 +61,21 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const stripe = getStripe();
-    const supabaseAdmin = getSupabaseAdmin();
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-
-    if (session.payment_status !== "paid") {
-      return NextResponse.json({ paid: false });
+    const demoSession = parseDemoSessionId(sessionId);
+    if (!demoSession) {
+      return NextResponse.json({ error: "Invalid demo checkout session" }, { status: 400 });
     }
 
-    const { listingId, buyerId, sellerId } = session.metadata ?? {};
+    const { listingId, buyerId, sellerId, priceCents, title } = demoSession;
+    const hasAdminConfig =
+      Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()) &&
+      Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY?.trim());
+
+    if (!hasAdminConfig) {
+      return NextResponse.json(createOrderResponse(demoSession));
+    }
+
+    const supabaseAdmin = getSupabaseAdmin();
 
     const { data: order, error } = await supabaseAdmin
       .from("orders")
@@ -38,7 +84,7 @@ export async function GET(request: NextRequest) {
           buyer_id: buyerId,
           seller_id: sellerId,
           listing_id: listingId,
-          amount_cents: session.amount_total ?? 0,
+          amount_cents: priceCents,
           stripe_session_id: sessionId,
           status: "paid",
         },
@@ -51,14 +97,8 @@ export async function GET(request: NextRequest) {
       console.error("Failed to save order:", error);
     }
 
-    const { data: listing } = await supabaseAdmin
-      .from("listings")
-      .update({ status: "sold" })
-      .eq("id", Number(listingId))
-      .select("title, price")
-      .single();
-
-    // Upsert a completed transaction record
+    // Demo checkout intentionally does not mark the listing sold. This keeps
+    // fake showcase inventory available while still proving the purchase flow.
     const { data: existingTx } = await supabaseAdmin
       .from("transactions")
       .select("id")
@@ -74,27 +114,20 @@ export async function GET(request: NextRequest) {
     } else {
       await supabaseAdmin.from("transactions").insert({
         listing_id: Number(listingId),
-        listing_title: listing?.title ?? "",
-        listing_price: listing?.price ?? 0,
+        listing_title: title,
+        listing_price: priceCents / 100,
         buyer_id: buyerId,
         seller_id: sellerId,
-        agreed_amount: (session.amount_total ?? 0) / 100,
+        agreed_amount: priceCents / 100,
         status: "completed",
         source: "stripe",
+        notes: "Demo checkout: no real payment was collected.",
       });
     }
 
-    return NextResponse.json({
-      paid: true,
-      order: {
-        id: order?.id,
-        listingId,
-        amountCents: session.amount_total ?? 0,
-        listingTitle: session.line_items?.data[0]?.description ?? "",
-      },
-    });
+    return NextResponse.json(createOrderResponse(demoSession, order?.id));
   } catch (err) {
-    console.error("Stripe verify failed:", err);
+    console.error("Demo checkout verification failed:", err);
     return NextResponse.json({ error: "Verification failed" }, { status: 500 });
   }
 }

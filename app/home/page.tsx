@@ -109,7 +109,7 @@ export default function MarketplaceHome() {
   return (
     <main className="w-full">
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
-      <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#4a1716] bg-[url('/sbu-background-image1.jpg')] bg-cover bg-center px-4 py-24">
+      <section className="relative flex min-h-[100svh] items-center justify-center overflow-hidden bg-[#4a1716] bg-[url('/sbu-background-image1.jpg')] bg-cover bg-center px-4 py-24">
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(34,13,11,0.58),rgba(58,20,16,0.72)),radial-gradient(circle_at_top,rgba(255,244,229,0.18),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(255,198,141,0.2),transparent_30%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(49,19,16,0.52),rgba(49,19,16,0.2),rgba(49,19,16,0.52))]" />
         <div className="absolute left-[-6rem] top-24 h-48 w-48 rounded-full bg-[#ffe6d2]/10 blur-3xl" />

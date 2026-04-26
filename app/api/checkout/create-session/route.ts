@@ -1,19 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
 
-function getStripe() {
-  const stripeSecretKey = process.env.STRIPE_SECRET_KEY?.trim();
+type DemoCheckoutSession = {
+  listingId: number;
+  title: string;
+  priceCents: number;
+  sellerId: string;
+  buyerId: string;
+};
 
-  if (!stripeSecretKey) {
-    throw new Error("Stripe is not configured on this deployment.");
-  }
+function getAppUrl(request: NextRequest) {
+  return (
+    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+    request.nextUrl.origin
+  );
+}
 
-  return new Stripe(stripeSecretKey);
+function createDemoSessionId(session: DemoCheckoutSession) {
+  const encoded = Buffer.from(JSON.stringify(session), "utf8").toString("base64url");
+  return `demo_${encoded}`;
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const stripe = getStripe();
     const { listingId, title, priceCents, sellerId, buyerId } =
       await request.json();
 
@@ -21,30 +29,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: { name: title },
-            unit_amount: priceCents,
-          },
-          quantity: 1,
-        },
-      ],
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/cancel`,
-      metadata: {
-        listingId: String(listingId),
-        buyerId,
-        sellerId,
-      },
+    const sessionId = createDemoSessionId({
+      listingId: Number(listingId),
+      title: String(title),
+      priceCents: Number(priceCents),
+      sellerId: String(sellerId),
+      buyerId: String(buyerId),
     });
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({
+      url: `${getAppUrl(request)}/checkout/success?session_id=${encodeURIComponent(sessionId)}`,
+    });
   } catch (err) {
-    console.error("Stripe session creation failed:", err);
+    console.error("Demo checkout session creation failed:", err);
     return NextResponse.json({ error: "Failed to create checkout session" }, { status: 500 });
   }
 }

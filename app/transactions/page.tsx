@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuthGuard } from "@/lib/useAuthGuard";
 import { getMyTransactions, type TransactionWithCounterparty } from "@/lib/supabaseData";
+import { readDemoTransactions } from "@/lib/demoTransactions";
 
 const STATUS_STYLE: Record<string, string> = {
   reserved:  "bg-blue-50 text-blue-700 border-blue-200",
@@ -23,7 +24,7 @@ const STATUS_LABEL: Record<string, string> = {
 const SOURCE_LABEL: Record<string, string> = {
   direct: "Direct",
   offer:  "Via Offer",
-  stripe: "Paid Online",
+  stripe: "Demo Checkout",
 };
 
 type Tab = "all" | "buying" | "selling";
@@ -43,8 +44,31 @@ export default function TransactionsPage() {
     async function load() {
       setLoading(true);
       const { data } = await getMyTransactions();
+      const existingListingIds = new Set(data.map((tx) => tx.listingId));
+      const demoTransactions = readDemoTransactions()
+        .filter((tx) => !existingListingIds.has(tx.listingId))
+        .map((tx): TransactionWithCounterparty => ({
+          id: tx.id,
+          listingId: tx.listingId,
+          listingTitle: tx.listingTitle,
+          listingPrice: tx.amountCents / 100,
+          buyerId: null,
+          sellerId: tx.sellerId ?? "",
+          agreedAmount: tx.amountCents / 100,
+          status: "completed",
+          source: "stripe",
+          offerId: null,
+          notes: "Demo checkout: no real payment was collected.",
+          createdAt: tx.createdAt,
+          updatedAt: tx.createdAt,
+          counterpartyId: tx.sellerId ?? "",
+          counterpartyUsername: "Demo seller",
+          listingImage: null,
+          role: "buyer",
+        }));
+
       if (active) {
-        setTransactions(data);
+        setTransactions([...demoTransactions, ...data]);
         setLoading(false);
       }
     }

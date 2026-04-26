@@ -116,6 +116,18 @@ export default function CheckoutReviewPage() {
   const isOfferPrice = customPriceCents != null && customPriceCents !== Math.round(listing.price * 100);
   const sellerName = seller?.full_name ?? seller?.username ?? "Seller";
   const image = listing.images[0] ?? DEFAULT_IMAGE_SRC;
+  const cannotCheckout =
+    listing.sellerId === currentUserId ||
+    listing.status === "sold" ||
+    listing.status === "cancelled";
+  const checkoutBlockedMessage =
+    listing.sellerId === currentUserId
+      ? "You cannot check out your own listing."
+      : listing.status === "sold"
+      ? "This item has already been sold."
+      : listing.status === "cancelled"
+      ? "This listing has been cancelled."
+      : null;
 
   return (
     <main className="min-h-screen bg-[#f6f0ea] px-4 pb-28 pt-24">
@@ -190,12 +202,12 @@ export default function CheckoutReviewPage() {
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0 text-[#a88a7e]" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
             </svg>
-            You&apos;ll be taken to a secure Stripe payment page to enter your card details.
+            Demo checkout is enabled. No card details are collected, and no money will be moved.
           </div>
 
-          {error && (
+          {(error || checkoutBlockedMessage) && (
             <p className="mx-6 mb-4 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
-              {error}
+              {error ?? checkoutBlockedMessage}
             </p>
           )}
 
@@ -204,7 +216,7 @@ export default function CheckoutReviewPage() {
             <button
               type="button"
               onClick={handlePay}
-              disabled={paying}
+              disabled={paying || cannotCheckout}
               className="w-full rounded-full bg-[rgb(var(--brand-primary))] py-4 text-sm font-semibold text-white shadow-md transition hover:brightness-95 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {paying ? (
@@ -213,10 +225,10 @@ export default function CheckoutReviewPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                   </svg>
-                  Redirecting to payment…
+                  Confirming demo order…
                 </span>
               ) : (
-                `Pay $${displayPrice.toFixed(2)} securely`
+                `Confirm demo order for $${displayPrice.toFixed(2)}`
               )}
             </button>
             <button

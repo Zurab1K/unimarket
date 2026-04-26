@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import FallbackImage from "@/components/FallbackImage";
 import { readCart, removeCartItem, type CartItem } from "@/lib/cart";
 import { DEFAULT_IMAGE_SRC } from "@/lib/imageSources";
 
 export default function CartPage() {
+  const router = useRouter();
   const [items, setItems] = useState<CartItem[]>([]);
   const [ready, setReady] = useState(false);
 
@@ -17,6 +19,10 @@ export default function CartPage() {
 
   function handleRemove(id: number) {
     setItems(removeCartItem(id));
+  }
+
+  function handleCheckout(item: CartItem) {
+    router.push(`/checkout/${item.id}`);
   }
 
   const subtotal = items.reduce(
@@ -97,6 +103,13 @@ export default function CartPage() {
                     </span>
                     <button
                       type="button"
+                      onClick={() => handleCheckout(item)}
+                      className="rounded-full bg-[rgb(var(--brand-primary))] px-4 py-2 text-sm font-semibold text-white transition hover:brightness-95 active:scale-[0.97]"
+                    >
+                      Demo checkout
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => handleRemove(item.id)}
                       className="rounded-full border border-[#e0cfc6] bg-[#faf5f2] px-4 py-2 text-sm font-medium text-[#6d4037] transition hover:bg-[#f1e4dc]"
                     >
@@ -118,8 +131,8 @@ export default function CartPage() {
                 </span>
               </div>
               <p className="mt-4 text-sm leading-6 text-[#745f59]">
-                Checkout is not wired yet, but this page now holds your selected
-                listings so the cart flow has a real destination.
+                Demo checkout confirms one item at a time without collecting card
+                details or moving money.
               </p>
               <Link
                 href="/home"

@@ -24,10 +24,17 @@ export default function ChatBotWidget() {
   const [input, setInput] = useState("");
   const [status, setStatus] = useState<"idle" | "sending">("idle");
   const [error, setError] = useState<string | null>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: "smooth",
+    });
   }, [messages]);
 
   const sendMessage = async (prompt: string) => {
@@ -108,7 +115,10 @@ export default function ChatBotWidget() {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 space-y-3 overflow-y-auto bg-gradient-to-b from-white via-[rgba(var(--brand-accent),0.06)] to-[rgba(var(--brand-accent),0.09)] p-3">
+          <div
+            ref={messagesContainerRef}
+            className="flex-1 space-y-3 overflow-y-auto overscroll-contain bg-gradient-to-b from-white via-[rgba(var(--brand-accent),0.06)] to-[rgba(var(--brand-accent),0.09)] p-3"
+          >
             {messages.map((message, index) => {
               const isUser = message.role === "user";
               return (
