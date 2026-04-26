@@ -241,14 +241,6 @@ export default function ProfilePage() {
                               >
                                 {saving ? "Saving…" : "Save"}
                               </button>
-                              <button
-                                type="button"
-                                onClick={cancelEdit}
-                                disabled={saving}
-                                className="rounded-full border border-[#d7cdc3] bg-white px-4 py-2 text-sm font-semibold text-[#53433d] transition hover:border-[#b8aea4] disabled:cursor-not-allowed disabled:opacity-60"
-                              >
-                                Cancel
-                              </button>
                             </div>
                             {fieldError ? (
                               <p className="text-sm text-[rgb(var(--brand-primary))]">{fieldError}</p>
@@ -270,10 +262,10 @@ export default function ProfilePage() {
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[rgb(var(--brand-primary))]">
                 Preferences
               </p>
-              <dl className="mt-6 space-y-5 text-sm text-[#53433d]">
-                <div>
+              <dl className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+                <div className="sm:col-span-2 rounded-2xl border border-[#f0e7e0] bg-[#fcfaf7] px-4 py-3">
                   <dt className="font-medium text-[#2a1714]">Interests</dt>
-                  <dd className="mt-2 flex flex-wrap gap-2">
+                  <dd className="mt-2 flex flex-wrap gap-1.5">
                     {profile.interests.length > 0 ? (
                       profile.interests.map((interest) => (
                         <span
@@ -288,17 +280,17 @@ export default function ProfilePage() {
                     )}
                   </dd>
                 </div>
-                <div>
+                <div className="rounded-2xl border border-[#f0e7e0] bg-[#fcfaf7] px-4 py-3">
                   <dt className="font-medium text-[#2a1714]">Budget</dt>
-                  <dd className="mt-1">{profile.budget ?? "—"}</dd>
+                  <dd className="mt-1 text-[#53433d]">{profile.budget ?? "—"}</dd>
                 </div>
-                <div>
+                <div className="rounded-2xl border border-[#f0e7e0] bg-[#fcfaf7] px-4 py-3">
                   <dt className="font-medium text-[#2a1714]">Contact preference</dt>
-                  <dd className="mt-1">{profile.contact ?? "—"}</dd>
+                  <dd className="mt-1 text-[#53433d]">{profile.contact ?? "—"}</dd>
                 </div>
-                <div>
+                <div className="rounded-2xl border border-[#f0e7e0] bg-[#fcfaf7] px-4 py-3">
                   <dt className="font-medium text-[#2a1714]">Notifications</dt>
-                  <dd className="mt-1">{profile.notifications ? "Yes" : "No"}</dd>
+                  <dd className="mt-1 text-[#53433d]">{profile.notifications ? "Enabled" : "Disabled"}</dd>
                 </div>
               </dl>
             </div>
@@ -396,18 +388,26 @@ export default function ProfilePage() {
               )}
             </div>
 
-            <div className="lg:col-span-2 rounded-[2rem] border border-[#eadccf] bg-white p-6 shadow-[0_12px_25px_rgba(75,36,28,0.05)]">
+            <div className="lg:col-span-2 rounded-[2rem] border border-[#eadccf] bg-white px-6 py-5 shadow-[0_12px_25px_rgba(75,36,28,0.05)]">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[rgb(var(--brand-primary))]">
                 Account metadata
               </p>
-              <dl className="mt-6 grid gap-5 text-sm text-[#53433d] sm:grid-cols-2">
-                <div>
+              <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+                <div className="rounded-2xl border border-[#f0e7e0] bg-[#fcfaf7] px-4 py-3">
                   <dt className="font-medium text-[#2a1714]">Profile created</dt>
-                  <dd className="mt-1">{profile.created_at ?? "—"}</dd>
+                  <dd className="mt-1 text-[#53433d]">
+                    {profile.created_at
+                      ? new Date(profile.created_at).toLocaleString("en-US", { month: "long", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })
+                      : "—"}
+                  </dd>
                 </div>
-                <div>
+                <div className="rounded-2xl border border-[#f0e7e0] bg-[#fcfaf7] px-4 py-3">
                   <dt className="font-medium text-[#2a1714]">Last updated</dt>
-                  <dd className="mt-1">{profile.updated_at ?? "—"}</dd>
+                  <dd className="mt-1 text-[#53433d]">
+                    {profile.updated_at
+                      ? new Date(profile.updated_at).toLocaleString("en-US", { month: "long", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })
+                      : "—"}
+                  </dd>
                 </div>
               </dl>
             </div>

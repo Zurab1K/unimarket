@@ -6,6 +6,7 @@ import ListingCard from "@/components/ListingCard";
 import { useAuthGuard } from "@/lib/useAuthGuard";
 import {
   fetchListingsForSeller,
+  fetchSoldListingsForSeller,
   getProfileByUserId,
   getReviewsForUser,
   type ListingRecord,
@@ -21,6 +22,7 @@ export default function PublicProfilePage() {
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [listings, setListings] = useState<ListingRecord[]>([]);
+  const [soldListings, setSoldListings] = useState<ListingRecord[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,9 +35,10 @@ export default function PublicProfilePage() {
       setLoading(true);
       setError(null);
 
-      const [profileData, listingsResult, reviewsResult] = await Promise.all([
+      const [profileData, listingsResult, soldResult, reviewsResult] = await Promise.all([
         getProfileByUserId(userId),
         fetchListingsForSeller(userId),
+        fetchSoldListingsForSeller(userId),
         getReviewsForUser(userId),
       ]);
 
@@ -49,6 +52,7 @@ export default function PublicProfilePage() {
 
       setProfile(profileData);
       setListings(listingsResult.data);
+      setSoldListings(soldResult.data);
       setReviews(reviewsResult.data);
 
       if (listingsResult.error && !reviewsResult.error) {
@@ -217,6 +221,53 @@ export default function PublicProfilePage() {
             <p className="mt-6 text-sm text-[#8a736b]">No active listings right now.</p>
           )}
         </section>
+
+        {soldListings.length > 0 && (
+          <section className="rounded-[2rem] border border-[#eadccf] bg-[#fffaf6] px-6 py-7 shadow-[0_12px_30px_rgba(75,36,28,0.05)] sm:px-8">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[rgb(var(--brand-primary))]">
+                  Selling History
+                </p>
+                <h2 className="mt-1.5 text-2xl font-semibold text-[#2a1714]">
+                  Items this seller has sold
+                </h2>
+              </div>
+              <div className="rounded-full bg-[#f1e4dc] px-4 py-2 text-sm font-medium text-[#855246]">
+                {soldListings.length} sold
+              </div>
+            </div>
+
+            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {soldListings.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center gap-3 rounded-2xl border border-[#f0e7e0] bg-[#fcfaf7] p-3"
+                >
+                  <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl">
+                    <img
+                      src={item.images[0] ?? "/placeholder-avatar-picture.jpg"}
+                      alt={item.title}
+                      className="h-full w-full object-cover"
+                    />
+                    <span className="absolute inset-0 flex items-center justify-center rounded-xl bg-slate-900/40 text-[10px] font-bold uppercase tracking-wide text-white">
+                      Sold
+                    </span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-[#2a1714]">{item.title}</p>
+                    <p className="text-xs text-[#8a736b]">${item.price.toFixed(2)}</p>
+                    {item.updatedAt && (
+                      <p className="text-xs text-[#b8aea4]">
+                        {new Date(item.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="rounded-[2rem] border border-[#eadccf] bg-[#fffaf6] px-6 py-7 shadow-[0_12px_30px_rgba(75,36,28,0.05)] sm:px-8">
           <div>
