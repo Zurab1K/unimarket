@@ -7,6 +7,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthGuard } from "@/lib/useAuthGuard";
 import { fetchListings, fetchSavedListingIds, type ListingRecord } from "@/lib/supabaseData";
 import { LISTING_CATEGORIES, LISTING_CONDITIONS } from "@/lib/listingOptions";
+import { CAMPUS_ZONES, DEFAULT_MAP_CENTER, parseLocationText } from "@/lib/location";
+import LocationMap from "@/components/LocationMap";
 
 type ListingCardViewModel = {
   id: number;
@@ -19,6 +21,9 @@ type ListingCardViewModel = {
   condition: string;
   isNegotiable: boolean;
   searchText: string;
+  meetupZone: string;
+  lat: number | null;
+  lng: number | null;
 };
 
 type PriceBand = "all" | "under25" | "25to100" | "100to500" | "500plus";
@@ -40,7 +45,8 @@ function formatRelativeAge(createdAt: string) {
 }
 
 function toViewModel(listing: ListingRecord): ListingCardViewModel {
-  const pickupLocation = listing.location?.trim() || "Campus meetup";
+  const parsedLocation = parseLocationText(listing.location);
+  const pickupLocation = parsedLocation.label || listing.location?.trim() || "Campus meetup";
   const parts = [pickupLocation, formatRelativeAge(listing.createdAt)].filter(Boolean);
 
   return {
@@ -65,6 +71,9 @@ function toViewModel(listing: ListingRecord): ListingCardViewModel {
       .filter(Boolean)
       .join(" ")
       .toLowerCase(),
+    meetupZone: pickupLocation,
+    lat: parsedLocation.lat,
+    lng: parsedLocation.lng,
   };
 }
 
@@ -105,6 +114,8 @@ function SearchPageContent() {
   const [priceBand, setPriceBand] = useState<PriceBand>("all");
   const [postedWithin, setPostedWithin] = useState<PostedWithin>("any");
   const [negotiableOnly, setNegotiableOnly] = useState(false);
+  const [selectedZones, setSelectedZones] = useState<string[]>([]);
+  const [highlightedMapListingId, setHighlightedMapListingId] = useState<number | null>(null);
   const searchQuery = searchParams.get("search")?.trim() ?? "";
   const normalizedSearchQuery = searchQuery.toLowerCase();
 
@@ -158,6 +169,8 @@ function SearchPageContent() {
       const matchesCondition =
         selectedConditions.length === 0 || selectedConditions.includes(listing.condition);
       const matchesNegotiable = !negotiableOnly || listing.isNegotiable;
+      const matchesZone =
+        selectedZones.length === 0 || selectedZones.includes(listing.meetupZone);
 
       return (
         matchesSearch &&
@@ -165,7 +178,8 @@ function SearchPageContent() {
         matchesCondition &&
         matchesPriceBand(listing.price) &&
         matchesPostedWithin(listing.date) &&
-        matchesNegotiable
+        matchesNegotiable &&
+        matchesZone
       );
     });
 
@@ -184,6 +198,7 @@ function SearchPageContent() {
     priceBand,
     selectedCategories,
     selectedConditions,
+    selectedZones,
     sortBy,
   ]);
 
@@ -258,6 +273,7 @@ function SearchPageContent() {
               setPriceBand("all");
               setPostedWithin("any");
               setNegotiableOnly(false);
+              setSelectedZones([]);
             }}
             className="text-sm font-semibold text-[rgb(var(--brand-primary))] underline-offset-4 transition hover:underline"
           >
@@ -278,6 +294,7 @@ function SearchPageContent() {
                     setPriceBand("all");
                     setPostedWithin("any");
                     setNegotiableOnly(false);
+                    setSelectedZones([]);
                   }}
                   className="text-sm font-semibold text-[rgb(var(--brand-primary))] underline-offset-4 transition hover:underline"
                 >
@@ -381,6 +398,24 @@ function SearchPageContent() {
 
                 <section>
                   <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-[#8a736b]">
+                    Meetup zone
+                  </h3>
+                  <div className="mt-3 space-y-1">
+                    {CAMPUS_ZONES.map((zone) => (
+                      <FilterCheckbox
+                        key={zone.id}
+                        label={zone.label}
+                        checked={selectedZones.includes(zone.label)}
+                        onChange={(checked) =>
+                          setSelectedZones((current) => toggleValue(current, zone.label, checked))
+                        }
+                      />
+                    ))}
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-[#8a736b]">
                     Selling terms
                   </h3>
                   <div className="mt-3">
@@ -396,6 +431,30 @@ function SearchPageContent() {
           </aside>
 
           <section className="min-w-0 flex-1">
+            <div className="mb-5 rounded-[1.4rem] border border-[#eadccf] bg-[#fffaf6] p-4 shadow-[0_12px_24px_rgba(75,36,28,0.04)]">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#8a736b]">
+                Location browsing map
+              </p>
+              <LocationMap
+                center={DEFAULT_MAP_CENTER}
+                marker={
+                  highlightedMapListingId
+                    ? (() => {
+                        const selected = filteredListings.find(
+                          (listing) => listing.id === highlightedMapListingId,
+                        );
+                        return selected?.lat !== null && selected?.lng !== null
+                          ? [selected.lat, selected.lng]
+                          : null;
+                      })()
+                    : null
+                }
+                readOnly
+              />
+              <p className="mt-2 text-xs text-[#8a736b]">
+                Tip: use Meetup zone filters to narrow nearby listings.
+              </p>
+            </div>
             {loadingListings ? (
               <div className="rounded-[1.8rem] border border-[#eadccf] bg-[#fffaf6] px-6 py-12 text-center text-sm text-[#8a736b] shadow-[0_12px_30px_rgba(75,36,28,0.05)]">
                 Loading search results…
@@ -424,6 +483,7 @@ function SearchPageContent() {
                     price={`$${item.price}`}
                     image={item.image}
                     initialLiked={savedIds.has(item.id)}
+                    onHover={() => setHighlightedMapListingId(item.id)}
                   />
                 ))}
               </div>

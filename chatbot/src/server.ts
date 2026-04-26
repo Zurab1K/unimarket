@@ -18,10 +18,36 @@ const MODEL = process.env.GEMINI_MODEL ?? "gemini-2.0-flash";
 const apiKey = process.env.GEMINI_API_KEY;
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 const systemInstruction =
-  "You are a helpful assistant for a campus marketplace called UniMarket.";
+  [
+    "You are UniMarket Assistant, a specialized helper for a student marketplace.",
+    "Focus on practical marketplace tasks: pricing estimates, listing rewrites, buyer/seller message drafts, and meetup safety.",
+    "Keep suggestions concise, actionable, and campus-oriented.",
+    "When giving drafts, provide copy the user can paste directly.",
+  ].join(" ");
 
 const promptSchema = z.object({
   prompt: z.string().trim().min(1, "Prompt is required"),
+  intent: z
+    .enum([
+      "general",
+      "price_help",
+      "rewrite_listing",
+      "message_draft",
+      "summarize_listing",
+      "safety_advice",
+    ])
+    .optional()
+    .default("general"),
+  listingContext: z
+    .object({
+      title: z.string().optional(),
+      description: z.string().optional(),
+      price: z.number().optional(),
+      location: z.string().optional(),
+      condition: z.string().optional(),
+    })
+    .nullable()
+    .optional(),
 });
 
 function normalizeGeminiError(error: unknown): { status: number; message: string } {
@@ -71,8 +97,11 @@ function normalizeGeminiError(error: unknown): { status: number; message: string
   return { status: 502, message: providerMessage || "Failed to connect to Gemini" };
 }
 
-function generateFallbackResponse(prompt: string): string {
+function generateFallbackResponse(prompt: string, intent: string): string {
   const normalized = prompt.trim().toLowerCase();
+  if (intent === "summarize_listing") {
+    return "Listing summary fallback: focus on item type, condition, price, and pickup area; call out any missing details before reserving.";
+  }
 
   if (
     normalized.includes("price") ||
@@ -162,10 +191,16 @@ app.post("/api/chat", async (req: Request, res: Response): Promise<void> => {
 
   try {
     const userPrompt = parseResult.data.prompt;
+    const intent = parseResult.data.intent;
+    const listingContext = parseResult.data.listingContext;
+    const marketplaceContext = listingContext
+      ? `\nListing context:\n${JSON.stringify(listingContext, null, 2)}`
+      : "";
+    const finalPrompt = `Intent: ${intent}\nUser request: ${userPrompt}${marketplaceContext}`;
 
     if (!ai) {
       res.json({
-        response: generateFallbackResponse(userPrompt),
+        response: generateFallbackResponse(userPrompt, intent),
         mode: "fallback",
         warning: "Gemini API key is not configured. Returning a local fallback response.",
       });
@@ -174,7 +209,7 @@ app.post("/api/chat", async (req: Request, res: Response): Promise<void> => {
 
     const response = await ai.models.generateContent({
       model: MODEL,
-      contents: userPrompt,
+      contents: finalPrompt,
       config: {
         systemInstruction,
         temperature: 0.7,
@@ -186,7 +221,7 @@ app.post("/api/chat", async (req: Request, res: Response): Promise<void> => {
     console.error("Gemini error", error);
     const normalized = normalizeGeminiError(error);
     res.json({
-      response: generateFallbackResponse(parseResult.data.prompt),
+      response: generateFallbackResponse(parseResult.data.prompt, parseResult.data.intent),
       mode: "fallback",
       warning: normalized.message,
     });

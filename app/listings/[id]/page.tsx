@@ -17,6 +17,8 @@ import {
   type UserProfile,
 } from "@/lib/supabaseData";
 import { supabase } from "@/lib/supabaseClient";
+import LocationMap from "@/components/LocationMap";
+import { DEFAULT_MAP_CENTER, parseLocationText } from "@/lib/location";
 
 const CONDITION_LABELS: Record<string, string> = {
   new: "New",
@@ -171,6 +173,11 @@ export default function ListingDetailPage() {
         year: "numeric",
       })
     : null;
+  const parsedLocation = parseLocationText(listing.location);
+  const meetupPoint =
+    parsedLocation.lat !== null && parsedLocation.lng !== null
+      ? ([parsedLocation.lat, parsedLocation.lng] as [number, number])
+      : null;
 
   return (
     <main className="min-h-screen bg-[#f6f0ea] px-4 pb-28 pt-24">
@@ -364,6 +371,20 @@ export default function ListingDetailPage() {
                 </p>
               </div>
             )}
+
+            <div className="rounded-2xl border border-[#eadccf] bg-[#fffaf6] px-5 py-4">
+              <p className="mb-1.5 text-xs font-semibold uppercase tracking-widest text-[#a06050]">
+                Meetup location
+              </p>
+              <p className="mb-3 text-sm text-[#4a2e27]">
+                {parsedLocation.label || listing.location || "Campus meetup point"}
+              </p>
+              <LocationMap
+                center={meetupPoint ?? DEFAULT_MAP_CENTER}
+                marker={meetupPoint}
+                readOnly
+              />
+            </div>
 
             {/* Posted date */}
             <p className="text-xs text-[#9a8078]">

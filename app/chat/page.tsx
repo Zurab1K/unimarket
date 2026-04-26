@@ -8,6 +8,14 @@ type ChatMessage = {
   content: string;
 };
 
+type ChatIntent =
+  | "general"
+  | "price_help"
+  | "rewrite_listing"
+  | "message_draft"
+  | "summarize_listing"
+  | "safety_advice";
+
 export default function Chat() {
   const ready = useAuthGuard();
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -20,17 +28,19 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const [status, setStatus] = useState<"idle" | "sending">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
 
-  const sendMessage = async (prompt: string) => {
+  const sendMessage = async (prompt: string, intent: ChatIntent = "general") => {
     setMessages((prev) => [...prev, { role: "user", content: prompt }]);
     setStatus("sending");
     setError(null);
+    setWarning(null);
 
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ prompt, intent }),
       });
 
       if (!response.ok) {
@@ -38,15 +48,39 @@ export default function Chat() {
         throw new Error(data?.error ?? "Chat backend error");
       }
 
-      const data = (await response.json()) as { response?: string };
+      const data = (await response.json()) as { response?: string; warning?: string };
       const reply = data.response?.trim() || "I couldn't generate a reply just now.";
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
+      setWarning(data.warning ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setStatus("idle");
     }
   };
+
+  const quickActions: Array<{ label: string; prompt: string; intent: ChatIntent }> = [
+    {
+      label: "Help me price an item",
+      prompt: "Help me price this item for UniMarket: [item], condition [condition], bought for [$].",
+      intent: "price_help",
+    },
+    {
+      label: "Rewrite my listing",
+      prompt: "Rewrite my listing to sound clear and trustworthy: [paste title + description].",
+      intent: "rewrite_listing",
+    },
+    {
+      label: "Draft seller message",
+      prompt: "Write a short message to a seller asking availability and meetup time.",
+      intent: "message_draft",
+    },
+    {
+      label: "Meetup safety tips",
+      prompt: "Give me a meetup safety checklist for campus exchange.",
+      intent: "safety_advice",
+    },
+  ];
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -71,6 +105,19 @@ export default function Chat() {
         </header>
 
         <section className="rounded-2xl border border-[rgba(var(--brand-primary),0.18)] bg-white p-4 shadow-lg">
+          <div className="mb-4 flex flex-wrap gap-2">
+            {quickActions.map((action) => (
+              <button
+                key={action.label}
+                type="button"
+                disabled={status === "sending"}
+                onClick={() => sendMessage(action.prompt, action.intent)}
+                className="rounded-full border border-[#e0cfc6] bg-[#faf5f2] px-3 py-1.5 text-xs font-semibold text-[#6d4037] transition hover:bg-[#f1e4dc] disabled:opacity-60"
+              >
+                {action.label}
+              </button>
+            ))}
+          </div>
           <div className="flex h-[55vh] flex-col gap-4 overflow-y-auto rounded-xl bg-gradient-to-b from-white to-[rgba(var(--brand-accent),0.06)] p-4">
             {messages.map((message, index) => {
               const isUser = message.role === "user";
@@ -97,6 +144,9 @@ export default function Chat() {
             <p className="mt-3 text-sm text-[rgb(var(--brand-primary))]">
               ⚠️ {error} — ensure the chatbot backend is running and CHAT_API_URL points to it.
             </p>
+          )}
+          {warning && !error && (
+            <p className="mt-3 text-sm text-[#8a736b]">Fallback note: {warning}</p>
           )}
 
           <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-3 sm:flex-row">

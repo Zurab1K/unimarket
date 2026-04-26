@@ -13,6 +13,7 @@ interface ListingCardProps {
   image: string;
   initialLiked?: boolean;
   onUnlike?: () => void;
+  onHover?: () => void;
 }
 
 export default function ListingCard({
@@ -23,6 +24,7 @@ export default function ListingCard({
   image,
   initialLiked = false,
   onUnlike,
+  onHover,
 }: ListingCardProps) {
   const [liked, setLiked] = useState(initialLiked);
 
@@ -54,6 +56,7 @@ export default function ListingCard({
   return (
     <Link
       href={`/listings/${id}`}
+      onMouseEnter={onHover}
       className="
         relative block h-[320px] w-full overflow-hidden rounded-[1.4rem] border border-[#eadccf] bg-[#fffaf6] shadow-[0_14px_36px_rgba(63,27,21,0.08)] select-none
         transition-all duration-300 ease-out

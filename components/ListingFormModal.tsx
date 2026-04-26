@@ -10,6 +10,14 @@ import {
   type ListingRecord,
 } from "@/lib/supabaseData";
 import { LISTING_CATEGORIES, LISTING_CONDITIONS } from "@/lib/listingOptions";
+import LocationMap from "@/components/LocationMap";
+import {
+  CAMPUS_ZONES,
+  DEFAULT_MAP_CENTER,
+  formatLocationText,
+  getZoneByLabel,
+  parseLocationText,
+} from "@/lib/location";
 
 interface ListingFormModalProps {
   listing?: ListingRecord | null;
@@ -55,6 +63,12 @@ export default function ListingFormModal({
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const parsedLocation = parseLocationText(form.location);
+  const [selectedPoint, setSelectedPoint] = useState<[number, number] | null>(
+    parsedLocation.lat !== null && parsedLocation.lng !== null
+      ? [parsedLocation.lat, parsedLocation.lng]
+      : null,
+  );
 
   function handleOverlayClick(e: React.MouseEvent<HTMLDivElement>) {
     if (e.target === overlayRef.current) onClose();
@@ -100,6 +114,25 @@ export default function ListingFormModal({
     }
 
     if (result.data) onSaved(result.data);
+  }
+
+  function handleZoneSelect(label: string) {
+    const zone = getZoneByLabel(label);
+    if (!zone) return;
+    setSelectedPoint([zone.lat, zone.lng]);
+    setForm((f) => ({
+      ...f,
+      location: formatLocationText(zone.label, zone.lat, zone.lng),
+    }));
+  }
+
+  function handleMapPick(lat: number, lng: number) {
+    const fallbackLabel = parsedLocation.label || "Campus meetup point";
+    setSelectedPoint([lat, lng]);
+    setForm((f) => ({
+      ...f,
+      location: formatLocationText(fallbackLabel || "Campus meetup point", lat, lng),
+    }));
   }
 
   return (
@@ -210,13 +243,52 @@ export default function ListingFormModal({
               <input
                 type="text"
                 value={form.location}
-                onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  const parsed = parseLocationText(next);
+                  setSelectedPoint(
+                    parsed.lat !== null && parsed.lng !== null
+                      ? [parsed.lat, parsed.lng]
+                      : null,
+                  );
+                  setForm((f) => ({ ...f, location: next }));
+                }}
                 placeholder="e.g. North campus"
                 disabled={saving}
                 className="input"
               />
             </Field>
           </div>
+
+          <Field label="Meetup map">
+            <div className="space-y-3">
+              <p className="text-xs text-[#8a736b]">
+                Pick a campus zone or click directly on the map to set a meetup point.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {CAMPUS_ZONES.map((zone) => (
+                  <button
+                    key={zone.id}
+                    type="button"
+                    onClick={() => handleZoneSelect(zone.label)}
+                    className="rounded-full border border-[#e0cfc6] bg-[#faf5f2] px-3 py-1.5 text-xs font-semibold text-[#6d4037] transition hover:bg-[#f1e4dc]"
+                  >
+                    {zone.label}
+                  </button>
+                ))}
+              </div>
+              <LocationMap
+                center={
+                  selectedPoint ??
+                  (parsedLocation.lat !== null && parsedLocation.lng !== null
+                    ? [parsedLocation.lat, parsedLocation.lng]
+                    : DEFAULT_MAP_CENTER)
+                }
+                marker={selectedPoint}
+                onPick={handleMapPick}
+              />
+            </div>
+          </Field>
 
           {/* Negotiable + Status row */}
           <div className="flex flex-wrap items-center gap-4">
