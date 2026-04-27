@@ -7,6 +7,7 @@ import type { ListingRecord } from "@/lib/supabaseData";
 import { deleteListing } from "@/lib/supabaseData";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 import ListingFormModal from "@/components/ListingFormModal";
+import { getLocationDisplayLabel } from "@/lib/location";
 
 interface MyListingCardProps {
   listing: ListingRecord;
@@ -71,7 +72,7 @@ export default function MyListingCard({
               )}
             </div>
             <p className="mt-0.5 text-xs text-[#8a736b]">
-              {[listing.category, listing.condition, listing.location]
+              {[listing.category, listing.condition, getLocationDisplayLabel(listing.location)]
                 .filter(Boolean)
                 .join(" · ")}
             </p>

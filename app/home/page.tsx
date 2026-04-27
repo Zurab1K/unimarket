@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useAuthGuard } from "@/lib/useAuthGuard";
 import { fetchListings, fetchSavedListingIds, type ListingRecord } from "@/lib/supabaseData";
 import { supabase } from "@/lib/supabaseClient";
+import { getLocationDisplayLabel } from "@/lib/location";
 
 type ListingCardViewModel = {
   id: number;
@@ -36,7 +37,7 @@ function formatRelativeAge(createdAt: string) {
 }
 
 function toViewModel(listing: ListingRecord): ListingCardViewModel {
-  const parts = [listing.location, formatRelativeAge(listing.createdAt)].filter(
+  const parts = [getLocationDisplayLabel(listing.location), formatRelativeAge(listing.createdAt)].filter(
     Boolean,
   );
   return {

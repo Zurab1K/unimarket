@@ -2,6 +2,26 @@ import { NextResponse } from "next/server";
 
 const DEFAULT_CHAT_API = "http://localhost:5050/api/chat";
 
+type ChatIntent =
+  | "general"
+  | "price_help"
+  | "rewrite_listing"
+  | "message_draft"
+  | "summarize_listing"
+  | "safety_advice";
+
+type ChatRequestBody = {
+  prompt?: string;
+  intent?: ChatIntent;
+  listingContext?: {
+    title?: string;
+    description?: string;
+    price?: number;
+    location?: string;
+    condition?: string;
+  };
+};
+
 function generateFallbackResponse(prompt: string): string {
   const normalized = prompt.trim().toLowerCase();
 
@@ -29,7 +49,7 @@ function generateFallbackResponse(prompt: string): string {
 }
 
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => null);
+  const body = (await request.json().catch(() => null)) as ChatRequestBody | null;
   const prompt = typeof body?.prompt === "string" ? body.prompt.trim() : "";
 
   if (!prompt) {
@@ -42,7 +62,11 @@ export async function POST(request: Request) {
     const response = await fetch(targetUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt }),
+      body: JSON.stringify({
+        prompt,
+        intent: body?.intent ?? "general",
+        listingContext: body?.listingContext ?? null,
+      }),
     });
 
     if (!response.ok) {
