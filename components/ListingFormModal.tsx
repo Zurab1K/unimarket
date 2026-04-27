@@ -412,20 +412,20 @@ export default function ListingFormModal({
                 role="switch"
                 aria-checked={form.isNegotiable}
                 onClick={() => setForm((f) => ({ ...f, isNegotiable: !f.isNegotiable }))}
-                disabled={saving}
-                className={[
-                  "relative h-6 w-11 rounded-full border transition-colors duration-200",
-                  form.isNegotiable
-                    ? "border-[rgb(var(--brand-accent))] bg-[rgb(var(--brand-accent))]"
-                    : "border-[#d0bfb8] bg-[#ede4de]",
-                ].join(" ")}
-              >
-                <span
-                  className={[
-                    "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200",
-                    form.isNegotiable ? "translate-x-5" : "translate-x-0.5",
-                  ].join(" ")}
-                />
+	                disabled={saving}
+	                className={[
+	                  "relative h-6 w-11 shrink-0 rounded-full border transition-colors duration-200",
+	                  form.isNegotiable
+	                    ? "border-[rgb(var(--brand-accent))] bg-[rgb(var(--brand-accent))]"
+	                    : "border-[#d0bfb8] bg-[#ede4de]",
+	                ].join(" ")}
+	              >
+	                <span
+	                  className={[
+	                    "absolute left-0.5 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-white shadow transition-transform duration-200",
+	                    form.isNegotiable ? "translate-x-[18px]" : "translate-x-0",
+	                  ].join(" ")}
+	                />
               </button>
             </label>
 

@@ -2,8 +2,9 @@
 
 import ListingCard from "@/components/ListingCard";
 import ListingFormModal from "@/components/ListingFormModal";
+import SortDropdown, { SortOption } from "@/components/SortDropdown";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuthGuard } from "@/lib/useAuthGuard";
 import { fetchListings, fetchSavedListingIds, type ListingRecord } from "@/lib/supabaseData";
 import { supabase } from "@/lib/supabaseClient";
@@ -55,6 +56,7 @@ function toViewModel(listing: ListingRecord): ListingCardViewModel {
 }
 
 export default function MarketplaceHome() {
+  const [sortBy, setSortBy] = useState<SortOption>("latest");
   const [listings, setListings] = useState<ListingCardViewModel[]>([]);
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
   const [loadingListings, setLoadingListings] = useState(true);
@@ -62,6 +64,9 @@ export default function MarketplaceHome() {
   const [hiddenOwnListingsCount, setHiddenOwnListingsCount] = useState(0);
   const [showCreate, setShowCreate] = useState(false);
   const ready = useAuthGuard();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -104,6 +109,42 @@ export default function MarketplaceHome() {
       active = false;
     };
   }, []);
+
+  const sortedListings = [...listings].sort((a, b) => {
+    if (sortBy === "latest") return a.date - b.date;
+    if (sortBy === "oldest") return b.date - a.date;
+    if (sortBy === "priceLow") return a.price - b.price;
+    if (sortBy === "priceHigh") return b.price - a.price;
+    return 0;
+  });
+
+  function updateArrows() {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 4);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }
+
+  function scrollByCards(direction: "left" | "right") {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollBy({
+      left: direction === "left" ? -el.clientWidth * 0.85 : el.clientWidth * 0.85,
+      behavior: "smooth",
+    });
+  }
+
+  useEffect(() => {
+    updateArrows();
+    const el = scrollRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", updateArrows, { passive: true });
+    window.addEventListener("resize", updateArrows);
+    return () => {
+      el.removeEventListener("scroll", updateArrows);
+      window.removeEventListener("resize", updateArrows);
+    };
+  }, [sortedListings.length, loadingListings]);
 
   if (!ready) return null;
 
@@ -183,13 +224,14 @@ export default function MarketplaceHome() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3 xl:justify-end">
-                  <div className="rounded-full bg-[#f1e4dc] px-4 py-2 text-sm font-medium text-[#855246]">
-                    {loadingListings
-                      ? "Checking marketplace…"
-                      : `${listings.length} active listing${listings.length === 1 ? "" : "s"}`}
-                  </div>
-                </div>
-              </div>
+	                  <div className="rounded-full bg-[#f1e4dc] px-4 py-2 text-sm font-medium text-[#855246]">
+	                    {loadingListings
+	                      ? "Checking marketplace…"
+	                      : `${listings.length} active listing${listings.length === 1 ? "" : "s"}`}
+	                  </div>
+	                  <SortDropdown sortBy={sortBy} setSortBy={setSortBy} />
+	                </div>
+	              </div>
 
               <p className="text-sm leading-6 text-[#745f59] sm:text-base">
                 New posts land here first. Sort what you see, save what you like, and message sellers when something stands out.
@@ -197,41 +239,84 @@ export default function MarketplaceHome() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {loadingListings && (
-              <p className="col-span-full text-center text-sm text-gray-500">
-                Loading listings…
-              </p>
-            )}
+	          {loadingListings && (
+	            <p className="text-center text-sm text-gray-500">
+	              Loading listings…
+	            </p>
+	          )}
 
-            {!loadingListings && listingsError && (
-              <p className="col-span-full mx-auto max-w-xl rounded-2xl border border-[rgba(var(--brand-primary),0.18)] bg-[rgba(var(--brand-accent),0.10)] px-5 py-4 text-center text-sm text-[rgb(var(--brand-primary))]">
-                Failed to load listings: {listingsError}
-              </p>
-            )}
+	          {!loadingListings && listingsError && (
+	            <p className="mx-auto max-w-xl rounded-2xl border border-[rgba(var(--brand-primary),0.18)] bg-[rgba(var(--brand-accent),0.10)] px-5 py-4 text-center text-sm text-[rgb(var(--brand-primary))]">
+	              Failed to load listings: {listingsError}
+	            </p>
+	          )}
 
-            {!loadingListings && !listingsError && listings.length === 0 && (
-              <p className="col-span-full mx-auto max-w-xl rounded-2xl border border-[#eadccf] bg-[#fffaf6] px-5 py-5 text-center text-sm leading-6 text-[#705f5a]">
-                {hiddenOwnListingsCount > 0
-                  ? "No listings from other sellers yet. Your own items are available in My listings."
-                  : "No listings yet — be the first to post one!"}
-              </p>
-            )}
+	          {!loadingListings && !listingsError && sortedListings.length === 0 && (
+	            <p className="mx-auto max-w-xl rounded-2xl border border-[#eadccf] bg-[#fffaf6] px-5 py-5 text-center text-sm leading-6 text-[#705f5a]">
+	              {hiddenOwnListingsCount > 0
+	                ? "No listings from other sellers yet. Your own items are available in My listings."
+	                : "No listings yet — be the first to post one!"}
+	            </p>
+	          )}
 
-            {!loadingListings &&
-              !listingsError &&
-              listings.map((item) => (
-                <ListingCard
-                  key={item.id}
-                  id={item.id}
-                  title={item.title}
-                  location={item.location}
-                  price={`$${item.price}`}
-                  image={item.image}
-                  initialLiked={savedIds.has(item.id)}
-                />
-              ))}
-          </div>
+	          {!loadingListings && !listingsError && sortedListings.length > 0 && (
+	            <div className="relative">
+	              <button
+	                type="button"
+	                onClick={() => scrollByCards("left")}
+	                aria-label="Scroll left"
+	                className={[
+	                  "absolute left-0 top-1/2 z-10 hidden h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#eadccf] bg-white text-[#6d4037] shadow-[0_8px_24px_rgba(63,27,21,0.15)] transition hover:bg-[#fdf1ec] active:scale-95 sm:flex",
+	                  canScrollLeft ? "opacity-100" : "pointer-events-none opacity-0",
+	                ].join(" ")}
+	              >
+	                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+	                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+	                </svg>
+	              </button>
+
+	              <button
+	                type="button"
+	                onClick={() => scrollByCards("right")}
+	                aria-label="Scroll right"
+	                className={[
+	                  "absolute right-0 top-1/2 z-10 hidden h-11 w-11 translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#eadccf] bg-white text-[#6d4037] shadow-[0_8px_24px_rgba(63,27,21,0.15)] transition hover:bg-[#fdf1ec] active:scale-95 sm:flex",
+	                  canScrollRight ? "opacity-100" : "pointer-events-none opacity-0",
+	                ].join(" ")}
+	              >
+	                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+	                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+	                </svg>
+	              </button>
+
+	              <div
+	                ref={scrollRef}
+	                className="hide-scrollbar flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-2"
+	              >
+	                {sortedListings.map((item) => (
+	                  <div
+	                    key={item.id}
+	                    className="w-[17rem] flex-shrink-0 snap-start sm:w-[18rem]"
+	                  >
+	                    <ListingCard
+	                      id={item.id}
+	                      title={item.title}
+	                      location={item.location}
+	                      price={`$${item.price}`}
+	                      image={item.image}
+	                      initialLiked={savedIds.has(item.id)}
+	                    />
+	                  </div>
+	                ))}
+	                <div className="w-1 flex-shrink-0" aria-hidden />
+	              </div>
+
+	              <style>{`
+	                .hide-scrollbar::-webkit-scrollbar { display: none; }
+	                .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+	              `}</style>
+	            </div>
+	          )}
         </div>
       </section>
 
