@@ -6,6 +6,7 @@ import { useAuthGuard } from "@/lib/useAuthGuard";
 import { fetchListing, getProfileByUserId, type ListingRecord, type UserProfile } from "@/lib/supabaseData";
 import { supabase } from "@/lib/supabaseClient";
 import FallbackImage from "@/components/FallbackImage";
+import SafetyNotice from "@/components/SafetyNotice";
 import { DEFAULT_IMAGE_SRC } from "@/lib/imageSources";
 
 export default function CheckoutReviewPage() {
@@ -203,6 +204,10 @@ export default function CheckoutReviewPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
             </svg>
             Demo checkout is enabled. No card details are collected, and no money will be moved.
+          </div>
+
+          <div className="mx-6 mb-5">
+            <SafetyNotice title="Before confirming" compact />
           </div>
 
           {(error || checkoutBlockedMessage) && (

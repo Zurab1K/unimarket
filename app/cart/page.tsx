@@ -7,6 +7,7 @@ import FallbackImage from "@/components/FallbackImage";
 import { readCart, removeCartItem, type CartItem } from "@/lib/cart";
 import { DEFAULT_IMAGE_SRC } from "@/lib/imageSources";
 import LocationMap from "@/components/LocationMap";
+import SafetyNotice from "@/components/SafetyNotice";
 import {
   DEFAULT_MAP_CENTER,
   formatLocationText,
@@ -157,6 +158,9 @@ export default function CartPage() {
                 Demo checkout confirms one item at a time without collecting card
                 details or moving money.
               </p>
+              <div className="mt-4">
+                <SafetyNotice title="Checkout safety" compact />
+              </div>
               <div className="mt-4">
                 <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.18em] text-[#8a736b]">
                   Final meetup note

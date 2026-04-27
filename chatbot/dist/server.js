@@ -12,6 +12,9 @@ const systemInstruction = [
     "Focus on practical marketplace tasks: pricing estimates, listing rewrites, buyer/seller message drafts, and meetup safety.",
     "Keep suggestions concise, actionable, and campus-oriented.",
     "When giving drafts, provide copy the user can paste directly.",
+    "Never ask for or repeat passwords, payment codes, student ID numbers, banking details, dorm room numbers, or private addresses.",
+    "Do not claim to verify users, guarantee prices, arbitrate disputes, provide legal advice, or handle emergencies.",
+    "For unsafe situations, tell users to stop the exchange, keep records, meet only publicly, and contact campus safety or emergency services when appropriate.",
 ].join(" ");
 const promptSchema = z.object({
     prompt: z.string().trim().min(1, "Prompt is required"),
@@ -109,7 +112,8 @@ function generateFallbackResponse(prompt, intent) {
         return [
             "UniMarket fallback assistant:",
             "Meet in a public campus location, avoid advance payments, inspect the item before sending money, and keep all deal details in writing.",
-            "If the buyer or seller rushes you, asks to move off-platform immediately, or refuses a normal meetup, walk away.",
+            "Do not share passwords, payment codes, student ID numbers, banking details, dorm rooms, or private addresses.",
+            "If the buyer or seller rushes you, asks to move off-platform immediately, or refuses a normal meetup, walk away and contact campus safety if needed.",
         ].join("\n");
     }
     if (normalized.includes("listing") ||

@@ -73,16 +73,36 @@ export default function Footer() {
         </div>
 
         <div className="mt-4 border-t border-[#eadccf] pt-3 text-sm text-[#8a736b]">
-          <div className="flex flex-col gap-2 text-center sm:grid sm:grid-cols-3 sm:items-center sm:text-left">
+          <div className="flex flex-col gap-3 text-center lg:grid lg:grid-cols-3 lg:items-center lg:text-left">
             <p className="font-medium text-[#6d4037] sm:justify-self-start">
               Built for students, by students.
             </p>
-            <Link
-              href="/team"
-              className="font-medium text-[rgb(var(--brand-primary))] underline underline-offset-4 transition hover:text-[rgb(var(--brand-accent))] sm:justify-self-center"
-            >
-              Team
-            </Link>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link
+                href="/team"
+                className="font-medium text-[rgb(var(--brand-primary))] underline underline-offset-4 transition hover:text-[rgb(var(--brand-accent))]"
+              >
+                Team
+              </Link>
+              <Link
+                href="/safety"
+                className="font-medium text-[rgb(var(--brand-primary))] underline underline-offset-4 transition hover:text-[rgb(var(--brand-accent))]"
+              >
+                Safety
+              </Link>
+              <Link
+                href="/terms"
+                className="font-medium text-[rgb(var(--brand-primary))] underline underline-offset-4 transition hover:text-[rgb(var(--brand-accent))]"
+              >
+                Terms
+              </Link>
+              <Link
+                href="/privacy"
+                className="font-medium text-[rgb(var(--brand-primary))] underline underline-offset-4 transition hover:text-[rgb(var(--brand-accent))]"
+              >
+                Privacy
+              </Link>
+            </div>
             <p className="sm:justify-self-end">© 2026 Zurabi Kochiashvili</p>
           </div>
         </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import ImageUploader from "@/components/ImageUploader";
+import PolicyAcknowledgement from "@/components/PolicyAcknowledgement";
 import {
   createListing,
   updateListing,
@@ -75,6 +76,7 @@ export default function ListingFormModal({
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [policyAccepted, setPolicyAccepted] = useState(isEdit);
   const zoneIdSet = new Set(CAMPUS_ZONES.map((zone) => zone.id));
   const [customMeetupPoints, setCustomMeetupPoints] = useState<MeetupPoint[]>(
     initialMeetupPoints.filter((point) => point.isCustom || !zoneIdSet.has(point.id)),
@@ -122,6 +124,10 @@ export default function ListingFormModal({
     }
     if (form.price < 0) {
       setError("Price cannot be negative.");
+      return;
+    }
+    if (!policyAccepted) {
+      setError("You must accept the marketplace safety and policy rules before posting.");
       return;
     }
 
@@ -412,20 +418,20 @@ export default function ListingFormModal({
                 role="switch"
                 aria-checked={form.isNegotiable}
                 onClick={() => setForm((f) => ({ ...f, isNegotiable: !f.isNegotiable }))}
-	                disabled={saving}
-	                className={[
-	                  "relative h-6 w-11 shrink-0 rounded-full border transition-colors duration-200",
-	                  form.isNegotiable
-	                    ? "border-[rgb(var(--brand-accent))] bg-[rgb(var(--brand-accent))]"
-	                    : "border-[#d0bfb8] bg-[#ede4de]",
-	                ].join(" ")}
-	              >
-	                <span
-	                  className={[
-	                    "absolute left-0.5 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-white shadow transition-transform duration-200",
-	                    form.isNegotiable ? "translate-x-[18px]" : "translate-x-0",
-	                  ].join(" ")}
-	                />
+                disabled={saving}
+                className={[
+                  "relative h-6 w-11 shrink-0 rounded-full border transition-colors duration-200",
+                  form.isNegotiable
+                    ? "border-[rgb(var(--brand-accent))] bg-[rgb(var(--brand-accent))]"
+                    : "border-[#d0bfb8] bg-[#ede4de]",
+                ].join(" ")}
+              >
+                <span
+                  className={[
+                    "absolute left-0.5 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-white shadow transition-transform duration-200",
+                    form.isNegotiable ? "translate-x-[18px]" : "translate-x-0",
+                  ].join(" ")}
+                />
               </button>
             </label>
 
@@ -445,6 +451,12 @@ export default function ListingFormModal({
               </Field>
             )}
           </div>
+
+          <PolicyAcknowledgement
+            checked={policyAccepted}
+            onChange={setPolicyAccepted}
+            disabled={saving}
+          />
 
           {error && (
             <p className="rounded-xl border border-[rgba(var(--brand-primary),0.18)] bg-[rgba(var(--brand-accent),0.12)] px-4 py-3 text-sm text-[rgb(var(--brand-primary))]">
@@ -466,7 +478,7 @@ export default function ListingFormModal({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={saving}
+            disabled={saving || !policyAccepted}
             className="rounded-full bg-[rgb(var(--brand-accent))] px-6 py-2.5 text-sm font-semibold text-white shadow-md transition hover:brightness-95 active:scale-[0.97] disabled:opacity-60"
           >
             {saving ? "Saving…" : isEdit ? "Save changes" : "Post listing"}

@@ -109,7 +109,8 @@ export default function Chat() {
           <h1 className="text-3xl font-bold text-gray-900">Chat with UniMarket</h1>
           <p className="text-sm text-gray-600">
             Powered by your chatbot backend (set CHAT_API_URL to match). Ask anything about listings,
-            pricing, or campus meetups.
+            pricing, or campus meetups. Do not share passwords, payment codes, student IDs, or
+            private addresses in chat.
           </p>
         </header>
 

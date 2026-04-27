@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import FallbackImage from "@/components/FallbackImage";
+import ReportListingButton from "@/components/ReportListingButton";
+import SafetyNotice from "@/components/SafetyNotice";
 import { DEFAULT_IMAGE_SRC } from "@/lib/imageSources";
 import { addListingToCart } from "@/lib/cart";
 import { useAuthGuard } from "@/lib/useAuthGuard";
@@ -505,6 +507,14 @@ export default function ListingDetailPage() {
                     View profile
                   </button>
                 </div>
+                <div className="mt-4">
+                  <ReportListingButton
+                    listingId={listing.id}
+                    listingTitle={listing.title}
+                    sellerId={listing.sellerId}
+                    sellerName={sellerDisplayName}
+                  />
+                </div>
               </div>
             )}
           </div>
@@ -592,6 +602,8 @@ export default function ListingDetailPage() {
                 readOnly
               />
             </div>
+
+            {!isOwner && <SafetyNotice compact />}
 
             {/* Posted date */}
             <p className="text-xs text-[#9a8078]">

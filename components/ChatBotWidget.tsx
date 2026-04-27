@@ -130,7 +130,7 @@ export default function ChatBotWidget() {
           <div className="flex items-center justify-between rounded-t-2xl bg-[rgb(var(--brand-accent))] px-4 py-3 text-white">
             <div>
               <span className="text-sm font-semibold">UniMarket AI</span>
-              <p className="text-xs text-white/75">Campus deals, pricing, and buyer help</p>
+              <p className="text-xs text-white/75">Do not share private IDs or payment codes</p>
             </div>
             <button
               onClick={() => setOpen(false)}

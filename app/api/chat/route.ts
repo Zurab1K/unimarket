@@ -48,6 +48,10 @@ function generateFallbackResponse(prompt: string): string {
   return "The AI provider is temporarily unavailable, but I can still help with pricing, listing copy, meetup safety, and buyer or seller messages. Ask about a specific item or situation.";
 }
 
+function safetyPrefix() {
+  return "Safety note: I cannot verify users, resolve disputes, or guarantee prices. Meet publicly, inspect items before paying, and do not share passwords, payment codes, student IDs, dorm rooms, or banking details.";
+}
+
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as ChatRequestBody | null;
   const prompt = typeof body?.prompt === "string" ? body.prompt.trim() : "";
@@ -73,7 +77,7 @@ export async function POST(request: Request) {
       const errorJson = await response.json().catch(() => null);
       const message = errorJson?.error || `Chat backend returned ${response.status}`;
       return NextResponse.json({
-        response: generateFallbackResponse(prompt),
+        response: `${safetyPrefix()}\n\n${generateFallbackResponse(prompt)}`,
         warning: message,
         mode: "fallback",
       });
@@ -85,14 +89,14 @@ export async function POST(request: Request) {
       mode?: "gemini" | "fallback";
     };
     return NextResponse.json({
-      response: data.response ?? generateFallbackResponse(prompt),
+      response: `${safetyPrefix()}\n\n${data.response ?? generateFallbackResponse(prompt)}`,
       warning: data.warning,
       mode: data.mode ?? "gemini",
     });
   } catch (error) {
     console.error("Chat proxy error", error);
     return NextResponse.json({
-      response: generateFallbackResponse(prompt),
+      response: `${safetyPrefix()}\n\n${generateFallbackResponse(prompt)}`,
       warning: "Chat backend unavailable",
       mode: "fallback",
     });
