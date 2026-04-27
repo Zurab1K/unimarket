@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
 import ListingCard from "@/components/ListingCard";
 import { useAuthGuard } from "@/lib/useAuthGuard";
 import {
@@ -244,12 +245,14 @@ export default function PublicProfilePage() {
                   key={item.id}
                   className="flex items-center gap-3 rounded-2xl border border-[#f0e7e0] bg-[#fcfaf7] p-3"
                 >
-                  <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl">
-                    <img
-                      src={item.images[0] ?? "/placeholder-avatar-picture.jpg"}
-                      alt={item.title}
-                      className="h-full w-full object-cover"
-                    />
+	                  <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl">
+	                    <Image
+	                      src={item.images[0] ?? "/placeholder-avatar-picture.jpg"}
+	                      alt={item.title}
+	                      fill
+	                      sizes="56px"
+	                      className="h-full w-full object-cover"
+	                    />
                     <span className="absolute inset-0 flex items-center justify-center rounded-xl bg-slate-900/40 text-[10px] font-bold uppercase tracking-wide text-white">
                       Sold
                     </span>

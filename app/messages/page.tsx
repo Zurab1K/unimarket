@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState, useRef, useCallback } from "react";
+import Image from "next/image";
 import { useAuthGuard } from "@/lib/useAuthGuard";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
@@ -645,15 +646,18 @@ function ChatPanel({
                       <div key={message.id} className={`flex flex-col ${isMine ? "items-end" : "items-start"}`}>
                         <div className={`max-w-xs rounded-2xl px-4 py-2.5 text-sm lg:max-w-sm ${isMine ? "bg-[rgb(var(--brand-accent))] text-white" : "bg-[#f0e7e0] text-[#2a1714]"}`}>
                           {/* Attachment */}
-                          {message.attachmentUrl && message.attachmentType === "image" && (
-                            <a href={message.attachmentUrl} target="_blank" rel="noopener noreferrer">
-                              <img
-                                src={message.attachmentUrl}
-                                alt="attachment"
-                                className="mb-2 max-h-48 w-full rounded-xl object-cover"
-                              />
-                            </a>
-                          )}
+	                          {message.attachmentUrl && message.attachmentType === "image" && (
+	                            <a href={message.attachmentUrl} target="_blank" rel="noopener noreferrer">
+	                              <Image
+	                                src={message.attachmentUrl}
+	                                alt="attachment"
+	                                width={320}
+	                                height={192}
+	                                className="mb-2 max-h-48 w-full rounded-xl object-cover"
+	                                unoptimized
+	                              />
+	                            </a>
+	                          )}
                           {message.attachmentUrl && message.attachmentType === "file" && (
                             <a
                               href={message.attachmentUrl}
@@ -696,9 +700,16 @@ function ChatPanel({
         {/* Pending attachment preview */}
         {pendingAttachment && (
           <div className="mb-2 flex items-center gap-2 rounded-xl border border-[#e0cfc6] bg-[#faf5f2] px-3 py-2">
-            {pendingAttachment.type === "image" ? (
-              <img src={pendingAttachment.url} alt="preview" className="h-10 w-10 rounded-lg object-cover" />
-            ) : (
+	            {pendingAttachment.type === "image" ? (
+	              <Image
+	                src={pendingAttachment.url}
+	                alt="preview"
+	                width={40}
+	                height={40}
+	                className="h-10 w-10 rounded-lg object-cover"
+	                unoptimized
+	              />
+	            ) : (
               <span className="text-base">📎</span>
             )}
             <span className="flex-1 truncate text-xs text-[#6d4037]">

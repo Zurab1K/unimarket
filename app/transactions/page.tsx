@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { useAuthGuard } from "@/lib/useAuthGuard";
 import { getMyTransactions, type TransactionWithCounterparty } from "@/lib/supabaseData";
@@ -168,13 +169,15 @@ function TransactionCard({ tx }: { tx: TransactionWithCounterparty }) {
   return (
     <div className="rounded-2xl border border-[#eadccf] bg-[#fffaf6] p-4 shadow-[0_6px_16px_rgba(75,36,28,0.04)]">
       <div className="flex items-start gap-4">
-        {/* Thumbnail */}
-        {tx.listingImage ? (
-          <img
-            src={tx.listingImage}
-            alt={tx.listingTitle}
-            className="h-16 w-16 shrink-0 rounded-xl object-cover"
-          />
+	        {/* Thumbnail */}
+	        {tx.listingImage ? (
+	          <Image
+	            src={tx.listingImage}
+	            alt={tx.listingTitle}
+	            width={64}
+	            height={64}
+	            className="h-16 w-16 shrink-0 rounded-xl object-cover"
+	          />
         ) : (
           <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-[#f1e4dc] text-2xl">
             🛍️
