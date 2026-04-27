@@ -27,8 +27,12 @@ export const DEFAULT_MAP_CENTER: [number, number] = [
 ];
 
 const LOCATION_PATTERN =
-  /^(?<label>.*?)\s*(?:\((?<lat>-?\d+(?:\.\d+)?),\s*(?<lng>-?\d+(?:\.\d+)?)\))?$/;
+  /^(.*?)\s*(?:\((-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)\))?$/;
 const MULTI_PREFIX = "MULTI_MEETUP::";
+
+export function isSerializedMeetupLocation(location: string | null | undefined) {
+  return location?.trim().startsWith(MULTI_PREFIX) ?? false;
+}
 
 export function formatLocationText(label: string, lat?: number, lng?: number) {
   const cleanLabel = label.trim();
@@ -45,11 +49,11 @@ export function parseLocationText(location: string | null | undefined): {
   if (!raw) return { label: "", lat: null, lng: null };
 
   const match = raw.match(LOCATION_PATTERN);
-  if (!match?.groups) return { label: raw, lat: null, lng: null };
+  if (!match) return { label: raw, lat: null, lng: null };
 
-  const label = match.groups.label?.trim() ?? raw;
-  const lat = match.groups.lat ? Number(match.groups.lat) : null;
-  const lng = match.groups.lng ? Number(match.groups.lng) : null;
+  const label = match[1]?.trim() ?? raw;
+  const lat = match[2] ? Number(match[2]) : null;
+  const lng = match[3] ? Number(match[3]) : null;
 
   if (
     lat === null ||

@@ -14,6 +14,7 @@ import LocationMap from "@/components/LocationMap";
 import {
   CAMPUS_ZONES,
   DEFAULT_MAP_CENTER,
+  isSerializedMeetupLocation,
   parseMeetupPoints,
   serializeMeetupPoints,
   type MeetupPoint,
@@ -44,6 +45,17 @@ export default function ListingFormModal({
 }: ListingFormModalProps) {
   const isEdit = Boolean(listing);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const rawInitialLocation = listing?.location ?? "";
+  const parsedInitialMeetupPoints = parseMeetupPoints(rawInitialLocation);
+  const initialMeetupPoints =
+    isSerializedMeetupLocation(rawInitialLocation) ||
+    parsedInitialMeetupPoints.some((point) => !point.isCustom)
+      ? parsedInitialMeetupPoints
+      : [];
+  const initialLocationText =
+    initialMeetupPoints.length > 0
+      ? initialMeetupPoints.map((point) => point.label).join(", ")
+      : rawInitialLocation;
 
   const [form, setForm] = useState<ListingInput>(
     listing
@@ -53,7 +65,7 @@ export default function ListingFormModal({
           price: listing.price,
           category: listing.category,
           condition: listing.condition ?? "good",
-          location: listing.location ?? "",
+          location: initialLocationText,
           images: listing.images,
           isNegotiable: listing.isNegotiable,
           status: listing.status,
@@ -63,7 +75,6 @@ export default function ListingFormModal({
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const initialMeetupPoints = parseMeetupPoints(listing?.location ?? "");
   const zoneIdSet = new Set(CAMPUS_ZONES.map((zone) => zone.id));
   const [customMeetupPoints, setCustomMeetupPoints] = useState<MeetupPoint[]>(
     initialMeetupPoints.filter((point) => point.isCustom || !zoneIdSet.has(point.id)),
@@ -119,7 +130,7 @@ export default function ListingFormModal({
       location:
         selectedMeetupPoints.length > 0
           ? serializeMeetupPoints(selectedMeetupPoints)
-          : form.location,
+          : form.location.trim(),
     };
 
     setSaving(true);
@@ -309,9 +320,9 @@ export default function ListingFormModal({
             <Field label="Location" className="flex-1">
               <input
                 type="text"
-                value={selectedMeetupPoints.map((point) => point.label).join(", ")}
-                readOnly
-                placeholder="Choose one or more meetup points below"
+                value={form.location}
+                onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
+                placeholder="e.g. North campus"
                 disabled={saving}
                 className="input"
               />

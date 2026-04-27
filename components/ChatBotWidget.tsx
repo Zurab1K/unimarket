@@ -157,7 +157,6 @@ export default function ChatBotWidget() {
               </button>
             ))}
           </div>
-          <div className="flex-1 space-y-3 overflow-y-auto bg-gradient-to-b from-white via-[rgba(var(--brand-accent),0.06)] to-[rgba(var(--brand-accent),0.09)] p-3">
           <div
             ref={messagesContainerRef}
             className="flex-1 space-y-3 overflow-y-auto overscroll-contain bg-gradient-to-b from-white via-[rgba(var(--brand-accent),0.06)] to-[rgba(var(--brand-accent),0.09)] p-3"
